@@ -12,22 +12,22 @@ function IntentSelection() {
         type: ChatType['type'];
     }> = [
             {
-                icon: <TreeIcon width={60} height={60} className="mr-3" />,
+                icon: <TreeIcon width={40} height={40} className="mr-3" />,
                 text: "Find elderly care",
                 type: 'elderly_care_services'
             },
             {
-                icon: <BookIcon width={60} height={60} className="mr-3" />,
+                icon: <BookIcon width={40} height={40} className="mr-3" />,
                 text: "Apply services",
                 type: 'apply_chat'
             },
             {
-                icon: <ChatIcon width={60} height={60} className="mr-3" />,
+                icon: <ChatIcon width={40} height={40} className="mr-3" />,
                 text: "Find person or business",
                 type: 'general_chat'
             },
             {
-                icon: <LeafIcon width={40} height={60} className="mr-3" />,
+                icon: <LeafIcon width={40} height={40} className="mr-3" />,
                 text: "General Inquiry",
                 type: 'general_chat'
             }

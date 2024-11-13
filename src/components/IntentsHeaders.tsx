@@ -27,7 +27,7 @@ function IntentHeaders({ icon, text, chatType }: { icon: any, text: string, chat
             navigate('/chat')
         }}
     >
-        <div className="transition-transform duration-300 group-hover:scale-110">
+        <div className="transition-transform duration-300 group-hover:scale-110 ">
             {icon}
         </div>
         <span className="whitespace-nowrap ml-3 font-medium text-gray-700">
@@ -35,8 +35,8 @@ function IntentHeaders({ icon, text, chatType }: { icon: any, text: string, chat
         </span>
         <div className="flex justify-end w-full">
             <ArrowRight
-                width={26}
-                height={26}
+                width={20}
+                height={20}
                 fill="currentColor"
                 className="text-accent-900 transition-transform duration-300 
                          group-hover:translate-x-1"

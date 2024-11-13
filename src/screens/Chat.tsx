@@ -81,7 +81,7 @@ function Chat() {
                     ))}
                 </div>
             </div>
-            <div className="flex items-center p-4 bg-white/80 backdrop-blur-md rounded-xl 
+            <div className="flex items-center bg-white/80 backdrop-blur-md rounded-xl 
                 border border-gray-200 shadow-lg justify-between w-full 
                 absolute left-0 bottom-0 transition-all duration-300 
                 hover:shadow-xl mx-auto max-w-3xl">
