@@ -50,7 +50,7 @@ function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons
                             src={imageUrl}
                             className="rounded-xl max-w-[200px] object-cover shadow-lg 
                                      transition-transform duration-300 hover:scale-105"
-                            alt="message image"
+                            alt={name || "Content"}
                         />
                     )}
                     <div className="flex-1 space-y-2">

@@ -4,32 +4,32 @@ import './index.css';
 import App from "./App";
 import reportWebVitals from './reportWebVitals';
 import {
-    createBrowserRouter, createMemoryRouter,
+    createMemoryRouter,
     RouterProvider,
 } from "react-router-dom";
 import IntentSelection from "./screens/IntentSelection";
 import Chat from "./screens/Chat";
-import {ChatProvider} from "./components/ChatContext";
+import { ChatProvider } from "./components/ChatContext";
 
 const router = createMemoryRouter(
     [
         {
             path: '/',
-            element: <App/>,
+            element: <App />,
             children: [{
                 path: '/test',
                 element: <div>Hi from test</div>
             },
-                {
-                    path: '',
-                    element: <IntentSelection/>
-                },
-                {
-                    path: '/chat',
-                    element:
-                        <Chat/>
+            {
+                path: '',
+                element: <IntentSelection />
+            },
+            {
+                path: '/chat',
+                element:
+                    <Chat />
 
-                }
+            }
             ]
         },
     ]
@@ -37,7 +37,7 @@ const router = createMemoryRouter(
 const root = ReactDOM.createRoot(document.getElementById('Chatbot'));
 root.render(
     <ChatProvider>
-        <RouterProvider router={router}/>
+        <RouterProvider router={router} />
     </ChatProvider>
 );
 

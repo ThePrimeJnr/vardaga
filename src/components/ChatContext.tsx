@@ -1,6 +1,6 @@
-import React, {createContext, ReactNode, useEffect, useState} from 'react';
-import {useReactMediaRecorder} from 'react-media-recorder';
-import {ChatContextType, ChatResponse, ChatType, Message} from "../types";
+import React, { createContext, ReactNode, useEffect, useState } from 'react';
+import { useReactMediaRecorder } from 'react-media-recorder';
+import { ChatContextType, ChatResponse, ChatType, Message } from "../types";
 
 const defaultContext: ChatContextType = {
     cancelRecording: () => {
@@ -22,11 +22,11 @@ const defaultContext: ChatContextType = {
     status: 'idle',
     clearChatHistory: () => {
     },
-    sendVoiceMessage: async () => {}
+    sendVoiceMessage: async () => { }
 };
 export const ChatContext = createContext<ChatContextType>(defaultContext);
 
-export const ChatProvider: React.FC<{ children: ReactNode }> = ({children}) => {
+export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [voiceInputActive, setVoiceInputActive] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
     ]);
@@ -35,7 +35,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({children}) => {
     const [shouldSend, setShouldSend] = useState(false);
     const [intent, setIntent] = useState<ChatType['type']>("general_chat")
     const [sessionId, setSessionId] = useState<string>("")
-    const {status, startRecording, stopRecording, clearBlobUrl} =
+    const { status, startRecording, stopRecording, clearBlobUrl } =
         useReactMediaRecorder({
             audio: true,
             onStop: async (blobUrl, blob) => {
@@ -78,33 +78,70 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({children}) => {
         }
     }
     const startChat = async () => {
-        const endpoint = _getEndpoint("start");
-        const response = await fetch(endpoint)
-        const j = await response.json()
-        setSessionId(j['_uuid'])
-        const finalEndpoint = _getEndpoint("chat");
-        if (finalEndpoint && j['_uuid']) {
-            const r = await fetch(`${finalEndpoint}`, {
+        try {
+            const endpoint = _getEndpoint("start");
+            const response = await fetch(endpoint);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Log the raw response for debugging
+            const rawText = await response.text();
+            console.log('Raw response:', rawText);
+
+            let j;
+            try {
+                j = JSON.parse(rawText);
+            } catch (parseError) {
+                console.error('JSON Parse Error:', parseError);
+                throw new Error('Invalid JSON response from server');
+            }
+
+            if (!j || !j['_uuid']) {
+                throw new Error('Invalid response format: missing _uuid');
+            }
+
+            setSessionId(j['_uuid']);
+            const finalEndpoint = _getEndpoint("chat");
+
+            if (!finalEndpoint) {
+                throw new Error('Invalid chat endpoint');
+            }
+
+            const chatResponse = await fetch(finalEndpoint, {
                 method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 body: JSON.stringify({
                     session_id: j['_uuid'],
                     question: "Hi"
                 }),
-                headers: {
-                    "Content-Type": "application/json",
-                }
             });
 
-            const response: ChatResponse = await r.json();
-            if (response.type == "msg") {
-                setMessages((prevMessages) => [...prevMessages, {
+            if (!chatResponse.ok) {
+                throw new Error(`Chat HTTP error! status: ${chatResponse.status}`);
+            }
+
+            const responseData: ChatResponse = await chatResponse.json();
+
+            if (responseData.type === "msg") {
+                setMessages(prevMessages => [...prevMessages, {
                     from: 'bot',
-                    message: response.answer || "",
+                    message: responseData.answer || "",
                     type: "msg"
                 }]);
             }
+        } catch (error) {
+            console.error('Error in startChat:', error);
+            setMessages(prevMessages => [...prevMessages, {
+                from: 'bot',
+                message: "I'm having trouble connecting right now. Please try again later.",
+                type: "msg"
+            }]);
         }
-    }
+    };
 
     const clearChatHistory = () => {
         setMessages([])
@@ -130,7 +167,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({children}) => {
             });
 
             const chatData: ChatResponse = await r.json();
-            if (chatData.type == "sr") {
+            if (chatData.type === "sr") {
                 chatData.sr_list.forEach((service) => {
                     setMessages((prevMessages) => [...prevMessages, {
                         from: 'bot',
@@ -190,7 +227,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({children}) => {
             setVoiceInputActive(!voiceInputActive);
         }
     };
-    
+
     const sendVoiceMessage = async () => {
         const finalEndpoint = _getEndpoint("voice");
         if (finalEndpoint) {
@@ -217,16 +254,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({children}) => {
                 type: 'voice'
             }]);
 
-            
+
         }
     }
 
     useEffect(() => {
-        if (shouldSend && status === "stopped") {
-            sendVoiceForSpeech2Text();
-            setShouldSend(false);
-        }
-    }, [status]);
+        const handleVoiceRecording = async () => {
+            if (shouldSend && status === "stopped") {
+                await sendVoiceForSpeech2Text();
+                setShouldSend(false);
+            }
+        };
+
+        handleVoiceRecording();
+    }, [status, shouldSend, sendVoiceForSpeech2Text]);
 
     return (
         <ChatContext.Provider

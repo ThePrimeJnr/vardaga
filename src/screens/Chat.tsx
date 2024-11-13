@@ -14,7 +14,7 @@ function Chat() {
     const {
         messages, input, setInput, sendMessage, status,
         setDisplayLabel, voiceInputActive,
-        cancelRecording, sendRecording, startChat, clearChatHistory,
+        cancelRecording, startChat, clearChatHistory,
         sendVoiceMessage
     } = chatContext;
 
@@ -31,19 +31,32 @@ function Chat() {
         setTimeElapsed(0);
     };
 
+    // Initialize chat only once when component mounts
     useEffect(() => {
-        startChat()
-        return clearChatHistory
-    }, []);
+        let mounted = true;
 
+        const initChat = async () => {
+            if (mounted) {
+                try {
+                    await startChat();
+                } catch (error) {
+                    console.error('Error initializing chat:', error);
+                }
+            }
+        };
+
+        initChat();
+
+        return () => {
+            mounted = false;
+            clearChatHistory();
+        };
+    }, []); // Empty dependency array
+
+    // Separate useEffect for scroll behavior
     useEffect(() => {
         if (scrollContainer.current) {
             scrollContainer.current.scrollTop = scrollContainer.current.scrollHeight;
-            // Add smooth animation for new messages
-            const lastMessage = scrollContainer.current.lastElementChild;
-            if (lastMessage) {
-                lastMessage.classList.add('animate-fade-in-up');
-            }
         }
     }, [messages]);
 

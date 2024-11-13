@@ -1,44 +1,75 @@
 import './App.css';
-import {useEffect, useState} from "react";
-import io from "socket.io-client";
-import TreeIcon from "./icons/Tree";
-import ArrowRight from "./icons/ArrowRight";
-import IntentHeaders from "./components/IntentsHeaders";
-import BookIcon from "./icons/Book";
-import ChatIcon from "./icons/Chat";
-import LeafIcon from "./icons/Leaf";
-import AvatarManIcon from "./icons/AvatarMan";
-import ExpandIcon from "./icons/Expand";
-import CloseIcon from "./icons/Close";
-import RobotIcon from "./icons/Robot";
+import { useState, useEffect } from "react";
 import Header from "./components/Header";
-import {Outlet} from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import AssistantIcon from "./icons/Assistant";
-
+import IntentSelection from './screens/IntentSelection';
+import Chat from './screens/Chat';
 
 function App() {
-    const [expanded, setExpanded] = useState(false)
-    const [open, setOpen] = useState(false)
-    if (open) {
+    const [expanded, setExpanded] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [slideDirection, setSlideDirection] = useState('right');
+    const location = useLocation();
 
-        return <div
-            className={`flex  flex-col h-[75vh] min-w-[400px] transition-all ease-in-out ${expanded ? "w-1/2" : "w-1/3"} fixed right-0 bottom-0 m-8 bg-white rounded-xl overflow-hidden shadow-xl`}
-        >
-            <Header
-                setExpanded={() => setExpanded(!expanded)}
-                expanded={expanded}
-                close={() => setOpen(false)}
-            />
-            <div id={'content'} className={'relative h-full overflow-hidden'}>
-                <Outlet/>
+    // Track route changes to determine slide direction
+    useEffect(() => {
+        setSlideDirection(location.pathname === '/chat' ? 'left' : 'right');
+    }, [location.pathname]);
+
+    if (open) {
+        return (
+            <div className={`
+                fixed right-0 bottom-0 m-8 
+                flex flex-col 
+                h-[75vh] min-w-[400px] 
+                ${expanded ? "w-1/2" : "w-1/3"} 
+                bg-white rounded-xl overflow-hidden shadow-xl
+                animate-slide-in
+            `}>
+                <Header
+                    setExpanded={() => setExpanded(!expanded)}
+                    expanded={expanded}
+                    close={() => setOpen(false)}
+                />
+                <div className="relative h-full overflow-hidden">
+                    <div className={`
+                        absolute inset-0 transition-transform duration-500 ease-in-out
+                        ${slideDirection === 'left' ? '-translate-x-full' : 'translate-x-0'}
+                    `}>
+                        <div className="absolute inset-0">
+                            <IntentSelection />
+                        </div>
+                    </div>
+                    <div className={`
+                        absolute inset-0 transition-transform duration-500 ease-in-out
+                        ${slideDirection === 'left' ? 'translate-x-0' : 'translate-x-full'}
+                    `}>
+                        <div className="absolute inset-0">
+                            <Chat />
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id={'footer'}></div>
-        </div>
+        );
     }
+
     return (
-        <div onClick={()=> setOpen(true)} className={'bg-accent-900 hover:cursor-pointer transition-all rounded-full h-14 w-14 flex items-center justify-center fixed right-0 bottom-0 m-8'}>
-           <AssistantIcon width={35} height={35} fill={'white'} /> 
-        </div>
+        <button
+            onClick={() => setOpen(true)}
+            className={`
+                fixed right-0 bottom-0 m-8
+                bg-accent-900 hover:bg-accent-800
+                rounded-full h-14 w-14 
+                flex items-center justify-center
+                transition-all duration-300
+                hover:scale-110 active:scale-95
+                shadow-lg hover:shadow-xl
+                animate-bounce-gentle
+            `}
+        >
+            <AssistantIcon width={35} height={35} fill={'white'} />
+        </button>
     );
 }
 
