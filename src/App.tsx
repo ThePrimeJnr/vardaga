@@ -5,6 +5,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import AssistantIcon from "./icons/Assistant";
 import IntentSelection from './screens/IntentSelection';
 import Chat from './screens/Chat';
+import React from 'react';
 
 function App() {
     const [expanded, setExpanded] = useState(false);
