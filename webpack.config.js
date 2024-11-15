@@ -9,8 +9,8 @@ module.exports = {
     entry: "./src/index.tsx",
     output: {
         path: path.resolve(__dirname, "dist"),
-        filename: "sugarpool.js",
-        library: "SugarPoolWidget",
+        filename: "chatbot.js",
+        library: "ChatbotWidget",
         libraryTarget: "umd",
         globalObject: 'this'
     },
