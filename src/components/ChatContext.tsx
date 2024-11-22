@@ -43,99 +43,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             },
         });
 
-    const _getEndpoint: (type: "refresh" | "start" | "chat" | "speech2text" | "voice") => string = (type) => {
+    const _getEndpoint = () => {
+        return process.env.REACT_APP_CHAT_BASEURL + '/api/v2/chatbot/chat';
+    };
 
-        let endpointType = ""
-        const chatBackendBaseUrl = process.env.REACT_APP_CHAT_BASEURL;
-        switch (intent) {
-            case "elderly_care_services":
-                endpointType = `${chatBackendBaseUrl}/elderly_care_chat`
-                break;
-
-            case "general_chat":
-                endpointType = `${chatBackendBaseUrl}/general_chat`
-                break;
-            case "apply_chat":
-                endpointType = `${chatBackendBaseUrl}/apply_chat`
-                break;
-            default:
-                endpointType = `${chatBackendBaseUrl}/general_chat`
-                break;
-        }
-        switch (type) {
-            case "chat":
-                return `${endpointType}/chat_text/`
-            case "refresh":
-                return `${endpointType}/refresh/`
-            case "start":
-                return `${endpointType}/`
-            case "speech2text":
-                return `${chatBackendBaseUrl}/test/speech2text/`
-            case "voice":
-                return `${endpointType}/chat_voice/`
-            default:
-                return `${endpointType}/`
-        }
-    }
     const startChat = async () => {
         try {
-            const endpoint = _getEndpoint("start");
-            const response = await fetch(endpoint);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            // Log the raw response for debugging
-            const rawText = await response.text();
-            console.log('Raw response:', rawText);
-
-            let j;
-            try {
-                j = JSON.parse(rawText);
-            } catch (parseError) {
-                console.error('JSON Parse Error:', parseError);
-                throw new Error('Invalid JSON response from server');
-            }
-
-            if (!j || !j['_uuid']) {
-                throw new Error('Invalid response format: missing _uuid');
-            }
-
-            setSessionId(j['_uuid']);
-            const finalEndpoint = _getEndpoint("chat");
-
-            if (!finalEndpoint) {
-                throw new Error('Invalid chat endpoint');
-            }
-
-            const chatResponse = await fetch(finalEndpoint, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    session_id: j['_uuid'],
-                    question: "Hi"
-                }),
-            });
-
-            if (!chatResponse.ok) {
-                throw new Error(`Chat HTTP error! status: ${chatResponse.status}`);
-            }
-
-            const responseData: ChatResponse = await chatResponse.json();
-
-            if (responseData.type === "msg") {
-                setMessages(prevMessages => [...prevMessages, {
-                    from: 'bot',
-                    message: responseData.answer || "",
-                    type: "msg"
-                }]);
-            }
+            setMessages([{
+                from: 'bot',
+                message: "Hello! How can I assist you today?",
+                type: "msg"
+            }]);
         } catch (error) {
             console.error('Error in startChat:', error);
-            setMessages(prevMessages => [...prevMessages, {
+            setMessages([{
                 from: 'bot',
                 message: "I'm having trouble connecting right now. Please try again later.",
                 type: "msg"
@@ -147,53 +68,45 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setMessages([])
     }
     const sendMessage = async () => {
-        const finalEndpoint = await _getEndpoint("chat");
-        if (finalEndpoint) {
-            setMessages((prevMessages) => [...prevMessages, {
-                from: 'user',
-                message: input,
-                type: 'msg'
-            }]);
-            setInput("");
-            const r = await fetch(`${finalEndpoint}`, {
+        const endpoint = _getEndpoint();
+        if (!input.trim()) return;
+
+        setMessages((prevMessages) => [...prevMessages, {
+            from: 'user',
+            message: input,
+            type: 'msg'
+        }]);
+        setInput("");
+
+        try {
+            const response = await fetch(endpoint, {
                 method: 'POST',
-                body: JSON.stringify({
-                    session_id: sessionId,
-                    question: input
-                }),
                 headers: {
                     "Content-Type": "application/json",
-                }
+                },
+                body: JSON.stringify({
+                    session_id: sessionId || "default",
+                    message: input
+                })
             });
 
-            const chatData: ChatResponse = await r.json();
-            if (chatData.type === "sr") {
-                chatData.sr_list.forEach((service) => {
-                    setMessages((prevMessages) => [...prevMessages, {
-                        from: 'bot',
-                        name: service.name,
-                        about: service.about,
-                        imageUrl: service.image,
-                        type: 'sr',
-                        buttons: [
-                            {
-                                name: "Visit",
-                                source: service.source
-                            },
-                            {
-                                name: "Book",
-                                source: "#"
-                            }
-                        ]
-                    }]);
-                })
-            } else {
-                setMessages((prevMessages) => [...prevMessages, {
-                    from: 'bot',
-                    message: chatData.answer || "",
-                    type: 'msg'
-                }])
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            const answer = await response.json();
+            setMessages((prevMessages) => [...prevMessages, {
+                from: 'bot',
+                message: answer,
+                type: 'msg'
+            }]);
+        } catch (error) {
+            console.error('Error sending message:', error);
+            setMessages((prevMessages) => [...prevMessages, {
+                from: 'bot',
+                message: "Sorry, I encountered an error. Please try again.",
+                type: 'msg'
+            }]);
         }
     };
 
