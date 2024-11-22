@@ -27,6 +27,7 @@ function App() {
                 ${expanded ? "w-1/2" : "w-1/3"} 
                 bg-white rounded-xl overflow-hidden shadow-xl
                 animate-slide-in
+                transition-all duration-300 ease-in-out
             `}>
                 <Header
                     setExpanded={() => setExpanded(!expanded)}
