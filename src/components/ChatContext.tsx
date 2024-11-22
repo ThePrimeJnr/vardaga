@@ -10,6 +10,7 @@ const defaultContext: ChatContextType = {
     sendRecording: () => {
     },
     voiceInputActive: false,
+    setVoiceInputActive: () => {},
     messages: [],
     input: '',
     setInput: () => {
@@ -43,9 +44,15 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             },
         });
 
-    const _getEndpoint = () => {
-        return process.env.REACT_APP_CHAT_BASEURL + '/api/v2/chatbot/chat';
-    };
+        const _getEndpoint = (type?: 'voice' | 'chat') => {
+            const baseUrl = process.env.REACT_APP_CHAT_BASEURL;
+            switch (type) {
+                case 'voice':
+                    return `${baseUrl}/api/v2/chatbot/voice`;
+                default:
+                    return `${baseUrl}/api/v2/chatbot/chat`;
+            }
+        };
 
     const startChat = async () => {
         try {
@@ -141,65 +148,100 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const sendVoiceMessage = async () => {
-        const finalEndpoint = _getEndpoint("voice");
-        if (finalEndpoint) {
+    const sendVoiceMessage = async (audioBlob: Blob) => {
+        const endpoint = _getEndpoint('voice');
+        if (!endpoint) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('session_id', sessionId || 'default');
+            formData.append('message', 'Voice message');
+            formData.append('audio_file', audioBlob, 'audio.wav');
+
             setMessages((prevMessages) => [...prevMessages, {
                 from: 'user',
-                message: input,
-                type: 'msg'
+                type: 'voice',
+                message: 'Voice message sent'
             }]);
-            setInput("");
-            const response = await fetch(`${finalEndpoint}`, {
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
-                body: JSON.stringify({
-                    session_id: sessionId,
-                    question: input
-                }),
-                headers: {
-                    "Content-Type": "application/json",
-                }
+                body: formData
             });
-            const blob = await response.blob()
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const transcription = await response.text();
+            
+            const chatResponse = await fetch(_getEndpoint('chat'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: sessionId || 'default',
+                    message: transcription
+                })
+            });
+
+            if (!chatResponse.ok) {
+                throw new Error(`HTTP error! status: ${chatResponse.status}`);
+            }
+
+            const answer = await chatResponse.text();
             setMessages((prevMessages) => [...prevMessages, {
                 from: 'bot',
-                audioUrl: URL.createObjectURL(blob),
-                type: 'voice'
+                message: answer,
+                type: 'msg'
             }]);
 
-
+        } catch (error) {
+            console.error('Error sending voice message:', error);
+            setMessages((prevMessages) => [...prevMessages, {
+                from: 'bot',
+                message: "Sorry, I encountered an error processing your voice message.",
+                type: 'msg'
+            }]);
         }
-    }
+    };
 
     useEffect(() => {
         const handleVoiceRecording = async () => {
-            if (shouldSend && status === "stopped") {
-                await sendVoiceForSpeech2Text();
+            if (shouldSend && status === "stopped" && audioBlob) {
+                await sendVoiceMessage(audioBlob);
                 setShouldSend(false);
+                setVoiceInputActive(false);
             }
         };
-
+    
         handleVoiceRecording();
-    }, [status, shouldSend, sendVoiceForSpeech2Text]);
+    }, [status, shouldSend, audioBlob]);
+
+    const contextValue = {
+        messages,
+        input,
+        setInput,
+        sendMessage,
+        status,
+        setDisplayLabel,
+        voiceInputActive,
+        setVoiceInputActive,
+        cancelRecording,
+        sendRecording,
+        startChat,
+        setIntent,
+        clearChatHistory,
+        sendVoiceMessage,
+        startRecording,
+        stopRecording,
+        clearBlobUrl,
+        setShouldSend,
+    };
 
     return (
-        <ChatContext.Provider
-            value={{
-                messages,
-                input,
-                setInput,
-                sendMessage,
-                status,
-                setDisplayLabel,
-                voiceInputActive,
-                cancelRecording,
-                sendRecording,
-                startChat,
-                setIntent,
-                clearChatHistory,
-                sendVoiceMessage
-            }}
-        >
+        <ChatContext.Provider value={contextValue}>
             {children}
         </ChatContext.Provider>
     );

@@ -13,9 +13,10 @@ function Chat() {
     const [nextIsVoice, setNextIsVoice] = useState(false)
     const {
         messages, input, setInput, sendMessage, status,
-        setDisplayLabel, voiceInputActive,
+        setDisplayLabel, voiceInputActive, setVoiceInputActive,
         cancelRecording, startChat, clearChatHistory,
-        sendVoiceMessage
+        sendVoiceMessage, sendRecording, startRecording, 
+        stopRecording, setShouldSend, clearBlobUrl
     } = chatContext;
 
     // timers for voice recording
@@ -29,6 +30,17 @@ function Chat() {
     const stopTimer = () => {
         if (timer) clearInterval(timer);
         setTimeElapsed(0);
+    };
+
+    const handleVoiceRecording = () => {
+        if (voiceInputActive) {
+            stopTimer();
+            sendRecording();
+        } else {
+            startTimer();
+            startRecording();
+            setVoiceInputActive(true);
+        }
     };
 
     // Initialize chat only once when component mounts
@@ -113,10 +125,7 @@ function Chat() {
                 )}
                 <div className="flex items-center space-x-3">
                     <button
-                        onClick={() => {
-                            voiceInputActive ? stopTimer() : startTimer()
-                            cancelRecording()
-                        }}
+                        onClick={handleVoiceRecording}
                         className={`p-3 rounded-full transition-all duration-300 
                             transform hover:scale-110 active:scale-95
                             ${voiceInputActive

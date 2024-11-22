@@ -47,5 +47,10 @@ export interface ChatContextType {
     cancelRecording: () => void;
     startChat: () => Promise<void>;
     clearChatHistory: () => void;
-    sendVoiceMessage: () => Promise<void>;
+    sendVoiceMessage: (audioBlob: Blob) => Promise<void>;
+    startRecording: () => void;
+    stopRecording: () => void;
+    clearBlobUrl: () => void;
+    setShouldSend: React.Dispatch<React.SetStateAction<boolean>>;
+    setVoiceInputActive: React.Dispatch<React.SetStateAction<boolean>>;
 }
