@@ -1,22 +1,31 @@
 import './App.css';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Header from "./components/Header";
 import { Outlet, useLocation } from "react-router-dom";
 import AssistantIcon from "./icons/Assistant";
 import IntentSelection from './screens/IntentSelection';
 import Chat from './screens/Chat';
 import React from 'react';
+import { ChatContext } from './components/ChatContext';
 
 function App() {
     const [expanded, setExpanded] = useState(false);
     const [open, setOpen] = useState(false);
     const [slideDirection, setSlideDirection] = useState('right');
     const location = useLocation();
+    const chatContext = useContext(ChatContext);
+    const { setInput } = chatContext;
 
-    // Track route changes to determine slide direction
     useEffect(() => {
+        const isNavigatingBack = location.pathname === '/';
         setSlideDirection(location.pathname === '/chat' ? 'left' : 'right');
-    }, [location.pathname]);
+        
+        if (isNavigatingBack) {
+            setTimeout(() => {
+                setInput('');
+            }, 300);
+        }
+    }, [location.pathname, setInput]);
 
     if (open) {
         return (

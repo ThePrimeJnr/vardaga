@@ -132,7 +132,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         stopRecording()
         setShouldSend(true)
     }
-    // For sending recorded voice to backend
+    // For sending recorded voice to backend (not working)
     const sendVoiceForSpeech2Text = async () => {
         if (audioBlob) {
             const endpoint = _getEndpoint("speech2text")

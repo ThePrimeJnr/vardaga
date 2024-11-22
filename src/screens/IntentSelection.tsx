@@ -8,10 +8,19 @@ import { useContext } from "react";
 import { ChatContext } from "../components/ChatContext";
 import MicOn from "../icons/MicOn";
 import Send from "../icons/Send";
+import { useNavigate } from "react-router-dom";
 
 function IntentSelection() {
+    const navigate = useNavigate();
     const chatContext = useContext(ChatContext);
     const { input, setInput, sendMessage } = chatContext;
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInput(e.target.value);
+        if (e.target.value.length === 1) {
+            navigate('/chat', { replace: true });
+        }
+    };
 
     const intentItems: Array<{
         icon: React.ReactNode;
@@ -69,9 +78,10 @@ function IntentSelection() {
                 <input
                     type="text"
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={handleInputChange}
                     onKeyDown={async (e) => {
                         if (e.key === 'Enter') {
+                            navigate('/chat', { replace: true });
                             await sendMessage();
                         }
                     }}

@@ -8,9 +8,17 @@ function IntentHeaders({ icon, text, chatType }: { icon: any, text: string, chat
 
     const chatContext = useContext(ChatContext);
     const {
-        setIntent
+        setIntent,
+        setInput
     } = chatContext;
     const navigate = useNavigate();
+
+    const handleClick = () => {
+        setIntent(chatType);
+        setInput(text);
+        navigate('/chat', { replace: true });
+    };
+
     return <div
         className={`
             bg-white rounded-xl py-2 px-6 
@@ -22,10 +30,7 @@ function IntentHeaders({ icon, text, chatType }: { icon: any, text: string, chat
             transform hover:scale-[1.02] hover:shadow-lg
             active:scale-[0.98]
         `}
-        onClick={() => {
-            setIntent(chatType)
-            navigate('/chat')
-        }}
+        onClick={handleClick}
     >
         <div className="transition-transform duration-300 group-hover:scale-110 ">
             {icon}
