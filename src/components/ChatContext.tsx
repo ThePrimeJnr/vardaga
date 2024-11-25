@@ -219,6 +219,58 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         handleVoiceRecording();
     }, [status, shouldSend, audioBlob]);
 
+    const sendIntentMessage = async (intentText: string, intentType: ChatType['type']) => {
+        // First update the states
+        setIntent(intentType);
+        setInput(intentText);
+        
+        // Create and add the user message immediately
+        const userMessage: Message = {
+            from: 'user',
+            message: intentText,
+            type: 'msg'
+        };
+        
+        setMessages(prev => [...prev, userMessage]);
+
+        try {
+            const endpoint = _getEndpoint();
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    session_id: sessionId || "default",
+                    message: intentText
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const answer = await response.json();
+            setMessages(prev => [...prev, {
+                from: 'bot',
+                message: answer,
+                type: 'msg'
+            }]);
+            
+            // Clear the input after sending
+            setInput('');
+        } catch (error) {
+            console.error('Error sending intent message:', error);
+            setMessages(prev => [...prev, {
+                from: 'bot',
+                message: "Sorry, I encountered an error. Please try again.",
+                type: 'msg'
+            }]);
+            // Clear input even if there's an error
+            setInput('');
+        }
+    };
+
     const contextValue = {
         messages,
         input,
@@ -238,6 +290,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         stopRecording,
         clearBlobUrl,
         setShouldSend,
+        sendIntentMessage
     };
 
     return (

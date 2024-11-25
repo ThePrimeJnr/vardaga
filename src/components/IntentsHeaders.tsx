@@ -5,18 +5,13 @@ import { useContext } from "react";
 import { ChatType } from "../types";
 
 function IntentHeaders({ icon, text, chatType }: { icon: any, text: string, chatType: ChatType['type'] }) {
-
     const chatContext = useContext(ChatContext);
-    const {
-        setIntent,
-        setInput
-    } = chatContext;
+    const { sendIntentMessage } = chatContext;
     const navigate = useNavigate();
 
     const handleClick = () => {
-        setIntent(chatType);
-        setInput(text);
         navigate('/chat', { replace: true });
+        sendIntentMessage(text, chatType);
     };
 
     return <div
