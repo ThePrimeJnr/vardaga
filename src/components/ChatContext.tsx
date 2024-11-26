@@ -29,13 +29,16 @@ export const ChatContext = createContext<ChatContextType>(defaultContext);
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [voiceInputActive, setVoiceInputActive] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([
-    ]);
+    const [messagesByIntent, setMessagesByIntent] = useState<Record<ChatType['type'], Message[]>>({
+        'elderly_care_services': [],
+        'general_chat': [],
+        'apply_chat': []
+    });
+    const [currentIntent, setCurrentIntent] = useState<ChatType['type']>("general_chat");
     const [input, setInput] = useState<string>("");
     const [audioBlob, setAudioBlob] = useState<Blob>();
     const [shouldSend, setShouldSend] = useState(false);
-    const [intent, setIntent] = useState<ChatType['type']>("general_chat")
-    const [sessionId, setSessionId] = useState<string>("")
+    const [sessionId, setSessionId] = useState<string>("");
     const { status, startRecording, stopRecording, clearBlobUrl } =
         useReactMediaRecorder({
             audio: true,
@@ -56,36 +59,50 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const startChat = async () => {
         try {
-            setMessages([{
-                from: 'bot',
-                message: "Hello! How can I assist you today?",
-                type: "msg"
-            }]);
+            setMessagesByIntent(prev => ({
+                ...prev,
+                'general_chat': [{
+                    from: 'bot',
+                    message: "Hello! How can I assist you today?",
+                    type: "msg"
+                }]
+            }));
         } catch (error) {
             console.error('Error in startChat:', error);
-            setMessages([{
-                from: 'bot',
-                message: "I'm having trouble connecting right now. Please try again later.",
-                type: "msg"
-            }]);
+            setMessagesByIntent(prev => ({
+                ...prev,
+                'general_chat': [{
+                    from: 'bot',
+                    message: "I'm having trouble connecting right now. Please try again later.",
+                    type: "msg"
+                }]
+            }));
         }
     };
 
     const clearChatHistory = () => {
-        setMessages([])
+        setMessagesByIntent(prev => ({
+            ...prev,
+            'elderly_care_services': [],
+            'general_chat': [],
+            'apply_chat': []
+        }));
     }
     const sendMessage = async () => {
-        const endpoint = _getEndpoint();
         if (!input.trim()) return;
 
-        setMessages((prevMessages) => [...prevMessages, {
-            from: 'user',
-            message: input,
-            type: 'msg'
-        }]);
+        setMessagesByIntent(prev => ({
+            ...prev,
+            [currentIntent]: [...prev[currentIntent], {
+                from: 'user',
+                message: input,
+                type: 'msg'
+            }]
+        }));
         setInput("");
 
         try {
+            const endpoint = _getEndpoint();
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -93,7 +110,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 },
                 body: JSON.stringify({
                     session_id: sessionId || "default",
-                    message: input
+                    message: input,
+                    intent: currentIntent
                 })
             });
 
@@ -102,24 +120,30 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
 
             const answer = await response.json();
-            setMessages((prevMessages) => [...prevMessages, {
-                from: 'bot',
-                message: answer,
-                type: 'msg'
-            }]);
+            setMessagesByIntent(prev => ({
+                ...prev,
+                [currentIntent]: [...prev[currentIntent], {
+                    from: 'bot',
+                    message: answer,
+                    type: 'msg'
+                }]
+            }));
         } catch (error) {
             console.error('Error sending message:', error);
-            setMessages((prevMessages) => [...prevMessages, {
-                from: 'bot',
-                message: "Sorry, I encountered an error. Please try again.",
-                type: 'msg'
-            }]);
+            setMessagesByIntent(prev => ({
+                ...prev,
+                [currentIntent]: [...prev[currentIntent], {
+                    from: 'bot',
+                    message: "Sorry, I encountered an error. Please try again.",
+                    type: 'msg'
+                }]
+            }));
         }
     };
 
     const setDisplayLabel = (msgs: Message[], index: number): boolean => {
         if (index === 0) return true;
-        return messages[index - 1].from !== msgs[index].from; // If the last message is from the same person, return false. 
+        return messagesByIntent[currentIntent][index - 1].from !== msgs[index].from; // If the last message is from the same person, return false. 
     };
 
 
@@ -158,11 +182,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             formData.append('message', 'Voice message');
             formData.append('audio_file', audioBlob, 'audio.wav');
 
-            setMessages((prevMessages) => [...prevMessages, {
-                from: 'user',
-                type: 'voice',
-                message: 'Voice message sent'
-            }]);
+            setMessagesByIntent(prev => ({
+                ...prev,
+                [currentIntent]: [...prev[currentIntent], {
+                    from: 'user',
+                    type: 'voice',
+                    message: 'Voice message sent'
+                }]
+            }));
 
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -191,19 +218,25 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
 
             const answer = await chatResponse.text();
-            setMessages((prevMessages) => [...prevMessages, {
-                from: 'bot',
-                message: answer,
-                type: 'msg'
-            }]);
+            setMessagesByIntent(prev => ({
+                ...prev,
+                [currentIntent]: [...prev[currentIntent], {
+                    from: 'bot',
+                    message: answer,
+                    type: 'msg'
+                }]
+            }));
 
         } catch (error) {
             console.error('Error sending voice message:', error);
-            setMessages((prevMessages) => [...prevMessages, {
-                from: 'bot',
-                message: "Sorry, I encountered an error processing your voice message.",
-                type: 'msg'
-            }]);
+            setMessagesByIntent(prev => ({
+                ...prev,
+                [currentIntent]: [...prev[currentIntent], {
+                    from: 'bot',
+                    message: "Sorry, I encountered an error processing your voice message.",
+                    type: 'msg'
+                }]
+            }));
         }
     };
 
@@ -220,59 +253,70 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, [status, shouldSend, audioBlob]);
 
     const sendIntentMessage = async (intentType: ChatType['type']) => {
-        // Update the intent type
-        setIntent(intentType);
+        setCurrentIntent(intentType);
         
-        // Add initial bot greeting
-        setMessages([{
-            from: 'bot',
-            message: getIntentGreeting(intentType),
-            type: 'msg'
-        }]);
+        if (messagesByIntent[intentType].length === 0) {
+            setMessagesByIntent(prev => ({
+                ...prev,
+                [intentType]: [{
+                    from: 'bot',
+                    message: getIntentGreeting(intentType),
+                    type: 'msg'
+                }]
+            }));
 
-        // Add a slight delay before sending "Hi"
-        setTimeout(async () => {
-            setMessages(prev => [...prev, {
-                from: 'user',
-                message: 'Hi',
-                type: 'msg'
-            }]);
+            setTimeout(async () => {
+                setMessagesByIntent(prev => ({
+                    ...prev,
+                    [intentType]: [...prev[intentType], {
+                        from: 'user',
+                        message: 'Hi',
+                        type: 'msg'
+                    }]
+                }));
 
-            try {
-                const endpoint = _getEndpoint();
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        session_id: sessionId || "default",
-                        message: "Hi"
-                    })
-                });
+                try {
+                    const endpoint = _getEndpoint();
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            session_id: sessionId || "default",
+                            message: "Hi",
+                            intent: intentType
+                        })
+                    });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const answer = await response.json();
+                    setMessagesByIntent(prev => ({
+                        ...prev,
+                        [intentType]: [...prev[intentType], {
+                            from: 'bot',
+                            message: answer,
+                            type: 'msg'
+                        }]
+                    }));
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    setMessagesByIntent(prev => ({
+                        ...prev,
+                        [intentType]: [...prev[intentType], {
+                            from: 'bot',
+                            message: "Sorry, I encountered an error. Please try again.",
+                            type: 'msg'
+                        }]
+                    }));
                 }
-
-                const answer = await response.json();
-                setMessages(prev => [...prev, {
-                    from: 'bot',
-                    message: answer,
-                    type: 'msg'
-                }]);
-            } catch (error) {
-                console.error('Error sending message:', error);
-                setMessages(prev => [...prev, {
-                    from: 'bot',
-                    message: "Sorry, I encountered an error. Please try again.",
-                    type: 'msg'
-                }]);
-            }
-        }, 500); // 500ms delay for better UX
+            }, 500);
+        }
     };
 
-    // Add this helper function to get intent-specific greetings
     const getIntentGreeting = (intentType: ChatType['type']) => {
         switch (intentType) {
             case 'elderly_care_services':
@@ -287,7 +331,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const contextValue = {
-        messages,
+        messages: messagesByIntent[currentIntent],
+        currentIntent,
+        setCurrentIntent,
         input,
         setInput,
         sendMessage,
@@ -298,7 +344,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         cancelRecording,
         sendRecording,
         startChat,
-        setIntent,
         clearChatHistory,
         sendVoiceMessage,
         startRecording,
