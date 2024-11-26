@@ -53,5 +53,5 @@ export interface ChatContextType {
     clearBlobUrl: () => void;
     setShouldSend: React.Dispatch<React.SetStateAction<boolean>>;
     setVoiceInputActive: React.Dispatch<React.SetStateAction<boolean>>;
-    sendIntentMessage: (intentText: string, intentType: ChatType['type']) => void;
+    sendIntentMessage: (intentType: ChatType['type']) => void;
 }

@@ -10,8 +10,8 @@ function IntentHeaders({ icon, text, chatType }: { icon: any, text: string, chat
     const navigate = useNavigate();
 
     const handleClick = () => {
+        sendIntentMessage(chatType);
         navigate('/chat', { replace: true });
-        sendIntentMessage(text, chatType);
     };
 
     return <div

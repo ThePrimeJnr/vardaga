@@ -219,55 +219,70 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         handleVoiceRecording();
     }, [status, shouldSend, audioBlob]);
 
-    const sendIntentMessage = async (intentText: string, intentType: ChatType['type']) => {
-        // First update the states
+    const sendIntentMessage = async (intentType: ChatType['type']) => {
+        // Update the intent type
         setIntent(intentType);
-        setInput(intentText);
         
-        // Create and add the user message immediately
-        const userMessage: Message = {
-            from: 'user',
-            message: intentText,
+        // Add initial bot greeting
+        setMessages([{
+            from: 'bot',
+            message: getIntentGreeting(intentType),
             type: 'msg'
-        };
-        
-        setMessages(prev => [...prev, userMessage]);
+        }]);
 
-        try {
-            const endpoint = _getEndpoint();
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    session_id: sessionId || "default",
-                    message: intentText
-                })
-            });
+        // Add a slight delay before sending "Hi"
+        setTimeout(async () => {
+            setMessages(prev => [...prev, {
+                from: 'user',
+                message: 'Hi',
+                type: 'msg'
+            }]);
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            try {
+                const endpoint = _getEndpoint();
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId || "default",
+                        message: "Hi"
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const answer = await response.json();
+                setMessages(prev => [...prev, {
+                    from: 'bot',
+                    message: answer,
+                    type: 'msg'
+                }]);
+            } catch (error) {
+                console.error('Error sending message:', error);
+                setMessages(prev => [...prev, {
+                    from: 'bot',
+                    message: "Sorry, I encountered an error. Please try again.",
+                    type: 'msg'
+                }]);
             }
+        }, 500); // 500ms delay for better UX
+    };
 
-            const answer = await response.json();
-            setMessages(prev => [...prev, {
-                from: 'bot',
-                message: answer,
-                type: 'msg'
-            }]);
-            
-            // Clear the input after sending
-            setInput('');
-        } catch (error) {
-            console.error('Error sending intent message:', error);
-            setMessages(prev => [...prev, {
-                from: 'bot',
-                message: "Sorry, I encountered an error. Please try again.",
-                type: 'msg'
-            }]);
-            // Clear input even if there's an error
-            setInput('');
+    // Add this helper function to get intent-specific greetings
+    const getIntentGreeting = (intentType: ChatType['type']) => {
+        switch (intentType) {
+            case 'elderly_care_services':
+                return "How can I help you find elderly care services today?";
+            case 'apply_chat':
+                return "What service would you like to apply for?";
+            case 'general_chat':
+                return "What would you like to know about?";
+            default:
+                return "Hello! How can I assist you today?";
         }
     };
 
