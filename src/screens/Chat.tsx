@@ -43,28 +43,6 @@ function Chat() {
         }
     };
 
-    // Initialize chat only once when component mounts
-    useEffect(() => {
-        let mounted = true;
-
-        const initChat = async () => {
-            if (mounted) {
-                try {
-                    await startChat();
-                } catch (error) {
-                    console.error('Error initializing chat:', error);
-                }
-            }
-        };
-
-        initChat();
-
-        return () => {
-            mounted = false;
-            clearChatHistory();
-        };
-    }, []); // Empty dependency array
-
     // Separate useEffect for scroll behavior
     useEffect(() => {
         if (scrollContainer.current) {
