@@ -23,6 +23,7 @@ export interface Message {
         name: string
         source: string
     }[];
+    quick_replies?: string[];
     name?: string;
     about?: string;
     source?: string;
@@ -40,7 +41,7 @@ export interface ChatContextType {
     input: string;
     setInput: React.Dispatch<React.SetStateAction<string>>;
     setIntent: React.Dispatch<React.SetStateAction<ChatType['type']>>;
-    sendMessage: () => Promise<void>;
+    sendMessage: (quickReplyMessage?: string) => Promise<void>;
     setDisplayLabel: (msgs: Message[], index: number) => boolean;
     status: string;
     sendRecording: () => void;
@@ -53,4 +54,21 @@ export interface ChatContextType {
     clearBlobUrl: () => void;
     setShouldSend: React.Dispatch<React.SetStateAction<boolean>>;
     setVoiceInputActive: React.Dispatch<React.SetStateAction<boolean>>;
+    sendIntentMessage: (intentType: ChatType['type']) => void;
+}
+
+export interface MessageContainerType {
+    from: 'bot' | 'user';
+    type: 'sr' | 'msg' | 'voice';
+    content?: string;
+    displayLabel: boolean;
+    imageUrl?: string;
+    buttons?: {
+        name: string;
+        source: string;
+    }[];
+    quick_replies?: string[];
+    name?: string;
+    about?: string;
+    audioUrl?: string;
 }

@@ -81,7 +81,7 @@ function Chat() {
                             <MessageContainer
                                 displayLabel={setDisplayLabel(messages, index)}
                                 buttons={msg.buttons}
-                                imageUrl={msg.imageUrl && msg.imageUrl}
+                                imageUrl={msg.imageUrl}
                                 content={msg.message}
                                 from={msg.from}
                                 type={msg.type}
@@ -89,10 +89,31 @@ function Chat() {
                                 about={msg.about}
                                 audioUrl={msg.audioUrl}
                             />
+                            {msg.from === 'bot' && msg.quick_replies && msg.quick_replies.length > 0 && (
+                                <div className="ml-12 mb-4">
+                                    <div className="flex flex-wrap gap-2">
+                                        {msg.quick_replies.map((reply, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => sendMessage(reply)}
+                                                className="px-4 py-2 bg-accent-50 text-accent-900 
+                                                         rounded-lg border border-accent-200
+                                                         hover:bg-accent-100 hover:border-accent-300
+                                                         active:scale-95 transform transition-all duration-200
+                                                         text-sm font-medium shadow-sm
+                                                         hover:shadow-md"
+                                            >
+                                                {reply}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
             </div>
+
             <div className="flex items-center bg-white/80 backdrop-blur-md rounded-xl 
                 border border-gray-200 shadow-lg justify-between 
                 absolute bottom-0 transition-all duration-300 
@@ -114,7 +135,7 @@ function Chat() {
                         }}
                         className="w-full bg-transparent focus:outline-none focus:ring-0 
                                  px-4 py-2 text-gray-700 placeholder-gray-400"
-                        placeholder="Type a message..."
+                        placeholder="Skriv här."
                     />
                 ) : (
                     <div className="flex items-center justify-center w-full">
