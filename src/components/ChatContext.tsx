@@ -92,7 +92,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const messageToSend = quickReplyMessage || input;
         if (!messageToSend.trim()) return;
 
-        // Clear input immediately
         setInput("");
 
         setMessagesByIntent(prev => ({
@@ -115,8 +114,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 body: JSON.stringify({
                     session_id: sessionId || "default",
                     message: messageToSend,
-                    intent: currentIntent,
-                    ...(agent && { agent_name: agent })
+                    agent_name: agent || "general"
                 })
             });
 
@@ -272,15 +270,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }));
 
             setTimeout(async () => {
-                setMessagesByIntent(prev => ({
-                    ...prev,
-                    [intentType]: [...prev[intentType], {
-                        from: 'user',
-                        message: 'Hi',
-                        type: 'msg'
-                    }]
-                }));
-
                 try {
                     const endpoint = _getEndpoint();
                     const agent = getAgentName(intentType);
@@ -291,9 +280,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         },
                         body: JSON.stringify({
                             session_id: sessionId || "default",
-                            message: "Hi",
-                            intent: intentType,
-                            ...(agent && { agent_name: agent })
+                            message: "start",
+                            agent_name: agent || "general"
                         })
                     });
 

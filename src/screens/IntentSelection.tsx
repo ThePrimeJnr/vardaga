@@ -32,7 +32,7 @@ function IntentSelection() {
         },
         {
             icon: <ChatIcon width={40} height={40} className="mr-3" />,
-            text: "Hitta person eller verksamhet",
+            text: "Hitta kontaktinformation",
             type: 'general_chat'
         },
         {
