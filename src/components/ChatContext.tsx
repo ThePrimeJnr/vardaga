@@ -272,15 +272,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }));
 
             setTimeout(async () => {
-                setMessagesByIntent(prev => ({
-                    ...prev,
-                    [intentType]: [...prev[intentType], {
-                        from: 'user',
-                        message: 'Hi',
-                        type: 'msg'
-                    }]
-                }));
-
                 try {
                     const endpoint = _getEndpoint();
                     const agent = getAgentName(intentType);
@@ -291,7 +282,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         },
                         body: JSON.stringify({
                             session_id: sessionId || "default",
-                            message: "Hi",
+                            message: "start",
                             intent: intentType,
                             ...(agent && { agent_name: agent })
                         })
