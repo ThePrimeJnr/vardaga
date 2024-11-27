@@ -31,19 +31,19 @@ function Header(
         navigate('/', { replace: true }); 
     };
 
-    return <div id={'header'} className={'min-h-16 h-16 bg-accent-900 flex justify-between items-center px-5'}>
+    return <div id={'header'} className={'min-h-16 h-24 bg-accent-900 flex justify-between items-center px-5'}>
         {location.pathname === '/' && <div className={'flex items-center justify-center'}>
             <RobotIcon width={30} height={30} fill={'white'}/>
-            <div className={'px-3 text-white'}>
-                <div>My name is Svardaga</div>
-                <div>I am your personal AI-assitant</div>
+            <div className={'px-3 text-white text-sm'}>
+                <div>Jag heter Svardaga.</div>
+                <div>Jag är din personliga AI-Assistent.</div>
             </div>
         </div>}
         {location.pathname === '/chat' && <div className={'flex items-center justify-center'}>
             <ArrowRight width={30} height={30} fill={'white'} className={'rotate-180 hover:cursor-pointer'}
                         onClick={handleBack}/>
             <div className={'px-3 text-white'}>
-                <div>Back</div>
+                <div>Tillbaka</div>
             </div>
         </div>}
         <div className={'flex'}>

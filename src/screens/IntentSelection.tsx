@@ -22,22 +22,22 @@ function IntentSelection() {
     }> = [
         {
             icon: <TreeIcon width={40} height={40} className="mr-3" />,
-            text: "Find elderly care",
+            text: "Hitta äldreomsorg",
             type: 'elderly_care_services'
         },
         {
             icon: <BookIcon width={40} height={40} className="mr-3" />,
-            text: "Apply services",
+            text: "Att söka äldreomsorg",
             type: 'apply_chat'
         },
         {
             icon: <ChatIcon width={40} height={40} className="mr-3" />,
-            text: "Find person or business",
+            text: "Hitta person eller verksamhet",
             type: 'general_chat'
         },
         {
             icon: <LeafIcon width={40} height={40} className="mr-3" />,
-            text: "General Inquiry",
+            text: "Allmäna frågor",
             type: 'general_chat'
         }
     ];
@@ -45,8 +45,8 @@ function IntentSelection() {
     return (
         <div className="bg-gradient-to-b from-[#FFE0DE] to-[#FFFFFF] h-full w-full px-8 pt-4 relative pb-16">
             <div className="mb-6 font-bold text-2xl animate-fade-in">
-                <div>Hello!</div>
-                <div>How can I help?</div>
+                <div>Hej! 👋</div>
+                <div>Hur kan jag hjälpa dig?</div>
             </div>
             <div className="grid grid-flow-row gap-4">
                 {intentItems.map((item, index) => (

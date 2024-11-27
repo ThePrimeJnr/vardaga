@@ -136,7 +136,7 @@ function Chat() {
                         }}
                         className="w-full bg-transparent focus:outline-none focus:ring-0 
                                  px-4 py-2 text-gray-700 placeholder-gray-400"
-                        placeholder="Type a message..."
+                        placeholder="Skriv här."
                     />
                 ) : (
                     <div className="flex items-center justify-center w-full">
