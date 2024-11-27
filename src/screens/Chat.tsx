@@ -139,7 +139,7 @@ function Chat() {
                     </button>
                     {input.length > 0 && !voiceInputActive && (
                         <button
-                            onClick={sendMessage}
+                            onClick={() => sendMessage()}
                             className="p-3 rounded-full bg-accent-900 text-white 
                                      transition-all duration-300 transform 
                                      hover:scale-110 active:scale-95 shadow-lg"

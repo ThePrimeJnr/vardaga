@@ -73,7 +73,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     const sendMessage = async (quickReplyMessage?: string) => {
         const messageToSend = quickReplyMessage || input;
-        if (!messageToSend.trim()) return;
+        if (!messageToSend?.trim()) return;
 
         setInput("");
 
