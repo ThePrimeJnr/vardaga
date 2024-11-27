@@ -92,7 +92,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const messageToSend = quickReplyMessage || input;
         if (!messageToSend.trim()) return;
 
-        // Clear input immediately
         setInput("");
 
         setMessagesByIntent(prev => ({
@@ -115,8 +114,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 body: JSON.stringify({
                     session_id: sessionId || "default",
                     message: messageToSend,
-                    intent: currentIntent,
-                    ...(agent && { agent_name: agent })
+                    agent_name: agent || "general"
                 })
             });
 
@@ -283,8 +281,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         body: JSON.stringify({
                             session_id: sessionId || "default",
                             message: "start",
-                            intent: intentType,
-                            ...(agent && { agent_name: agent })
+                            agent_name: agent || "general"
                         })
                     });
 
