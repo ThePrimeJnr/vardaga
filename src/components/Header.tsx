@@ -6,6 +6,7 @@ import ArrowRight from "../icons/ArrowRight";
 import MinimizeIcon from "../icons/Minimize";
 import { ChatContext } from "./ChatContext";
 import { useContext } from "react";
+import { getIntentName } from '../utils/intentUtils';
 
 type HeaderProps = {
     expanded: boolean,
@@ -24,7 +25,7 @@ function Header(
     const location = useLocation();
     const navigate = useNavigate();
     const chatContext = useContext(ChatContext);
-    const { setInput } = chatContext;
+    const { setInput, currentIntent } = chatContext;
 
     const handleBack = () => {
         setInput(''); 
@@ -43,7 +44,7 @@ function Header(
             <ArrowRight width={30} height={30} fill={'white'} className={'rotate-180 hover:cursor-pointer'}
                         onClick={handleBack}/>
             <div className={'px-3 text-white'}>
-                <div>Tillbaka</div>
+                <div>{getIntentName(currentIntent)}</div>
             </div>
         </div>}
         <div className={'flex'}>
