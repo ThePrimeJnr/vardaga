@@ -32,7 +32,7 @@ export interface Message {
 }
 
 export interface ChatType {
-    type: "elderly_care_services" | "general_chat" | "apply_chat"
+    type: "elderly_care_services" | "general_chat" | "apply_chat" | "general_questions"
 }
 
 export interface ChatContextType {

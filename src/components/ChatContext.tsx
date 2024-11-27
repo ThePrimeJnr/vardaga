@@ -30,11 +30,12 @@ export const ChatContext = createContext<ChatContextType>(defaultContext);
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [voiceInputActive, setVoiceInputActive] = useState(false);
     const [messagesByIntent, setMessagesByIntent] = useState<Record<ChatType['type'], Message[]>>({
-        'elderly_care_services': [],
-        'general_chat': [],
-        'apply_chat': []
+        elderly_care_services: [],
+        apply_chat: [],
+        general_chat: [],
+        general_questions: []
     });
-    const [currentIntent, setCurrentIntent] = useState<ChatType['type']>("general_chat");
+    const [currentIntent, setCurrentIntent] = useState<ChatType['type']>('general_chat');
     const [input, setInput] = useState<string>("");
     const [audioBlob, setAudioBlob] = useState<Blob>();
     const [shouldSend, setShouldSend] = useState(false);
@@ -58,26 +59,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
 
     const startChat = async () => {
-        try {
-            setMessagesByIntent(prev => ({
-                ...prev,
-                'general_chat': [{
-                    from: 'bot',
-                    message: "Hello! How can I assist you today?",
-                    type: "msg"
-                }]
-            }));
-        } catch (error) {
-            console.error('Error in startChat:', error);
-            setMessagesByIntent(prev => ({
-                ...prev,
-                'general_chat': [{
-                    from: 'bot',
-                    message: "I'm having trouble connecting right now. Please try again later.",
-                    type: "msg"
-                }]
-            }));
-        }
+        // Do nothing - we'll let sendIntentMessage handle the start message
     };
 
     const clearChatHistory = () => {
@@ -85,7 +67,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...prev,
             'elderly_care_services': [],
             'general_chat': [],
-            'apply_chat': []
+            'apply_chat': [],
+            'general_questions': []
         }));
     }
     const sendMessage = async (quickReplyMessage?: string) => {
@@ -260,79 +243,83 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCurrentIntent(intentType);
         
         if (messagesByIntent[intentType].length === 0) {
-            setMessagesByIntent(prev => ({
-                ...prev,
-                [intentType]: [{
-                    from: 'bot',
-                    message: getIntentGreeting(intentType),
-                    type: 'msg'
-                }]
-            }));
+            // Set initial greeting
+            // setMessagesByIntent(prev => ({
+            //     ...prev,
+            //     [intentType]: [{
+            //         from: 'bot',
+            //         message: getIntentGreeting(intentType),
+            //         type: 'msg'
+            //     }]
+            // }));
 
-            setTimeout(async () => {
-                try {
-                    const endpoint = _getEndpoint();
-                    const agent = getAgentName(intentType);
-                    const response = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            session_id: sessionId || "default",
-                            message: "start",
-                            agent_name: agent || "general"
-                        })
-                    });
+            // Send the "start" message only if the intent is opened for the first time
+            try {
+                const endpoint = _getEndpoint();
+                const agent = getAgentName(intentType);
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId || "default",
+                        message: "start",
+                        agent_name: agent || "general"
+                    })
+                });
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const answer = await response.json();
-                    setMessagesByIntent(prev => ({
-                        ...prev,
-                        [intentType]: [...prev[intentType], {
-                            from: 'bot',
-                            message: answer.message,
-                            quick_replies: answer.quick_replies,
-                            type: 'msg'
-                        }]
-                    }));
-                } catch (error) {
-                    console.error('Error sending message:', error);
-                    setMessagesByIntent(prev => ({
-                        ...prev,
-                        [intentType]: [...prev[intentType], {
-                            from: 'bot',
-                            message: "Sorry, I encountered an error. Please try again.",
-                            type: 'msg'
-                        }]
-                    }));
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            }, 500);
+
+                const answer = await response.json();
+                setMessagesByIntent(prev => ({
+                    ...prev,
+                    [intentType]: [...prev[intentType], {
+                        from: 'bot',
+                        message: answer.message,
+                        quick_replies: answer.quick_replies,
+                        type: 'msg'
+                    }]
+                }));
+            } catch (error) {
+                console.error('Error sending message:', error);
+                setMessagesByIntent(prev => ({
+                    ...prev,
+                    [intentType]: [...prev[intentType], {
+                        from: 'bot',
+                        message: "Sorry, I encountered an error. Please try again.",
+                        type: 'msg'
+                    }]
+                }));
+            }
         }
     };
 
-    const getIntentGreeting = (intentType: ChatType['type']) => {
-        switch (intentType) {
-            case 'elderly_care_services':
-                return "How can I help you find elderly care services today?";
-            case 'apply_chat':
-                return "What service would you like to apply for?";
-            case 'general_chat':
-                return "What would you like to know about?";
-            default:
-                return "Hello! How can I assist you today?";
-        }
-    };
+    // const getIntentGreeting = (intentType: ChatType['type']) => {
+    //     switch (intentType) {
+    //         case 'elderly_care_services':
+    //             return "How can I help you find elderly care services today?";
+    //         case 'apply_chat':
+    //             return "What service would you like to apply for?";
+    //         case 'general_chat':
+    //             return "What would you like to know about?";
+    //         default:
+    //             return "Hello! How can I assist you today?";
+    //     }
+    // };
 
     const getAgentName = (intentType: ChatType['type']): string | undefined => {
         switch (intentType) {
             case 'elderly_care_services':
                 return 'service';
+            case 'apply_chat':
+                return 'apply';
             case 'general_chat':
                 return 'contact';
+            case 'general_questions':
+                return 'general';
             default:
                 return undefined;
         }

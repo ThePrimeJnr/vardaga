@@ -38,7 +38,7 @@ function IntentSelection() {
         {
             icon: <LeafIcon width={40} height={40} className="mr-3" />,
             text: "Allmäna frågor",
-            type: 'general_chat'
+            type: 'general_questions'
         }
     ];
 
