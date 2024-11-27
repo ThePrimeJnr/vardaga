@@ -88,12 +88,33 @@ function Chat() {
                                 name={msg.name}
                                 about={msg.about}
                                 audioUrl={msg.audioUrl}
-                                quick_replies={msg.quick_replies}
                             />
                         </div>
                     ))}
                 </div>
             </div>
+
+            {messages.length > 0 && messages[messages.length - 1].from === 'bot' && messages[messages.length - 1].quick_replies && (
+                <div className="absolute bottom-16 left-0 right-0 px-8 py-2 bg-gradient-to-t from-white via-white">
+                    <div className="flex flex-wrap gap-2 justify-center">
+                        {messages[messages.length - 1].quick_replies.map((reply, index) => (
+                            <button
+                                key={index}
+                                onClick={() => sendMessage(reply)}
+                                className="px-4 py-2 bg-accent-50 text-accent-900 
+                                         rounded-lg border border-accent-200
+                                         hover:bg-accent-100 hover:border-accent-300
+                                         active:scale-95 transform transition-all duration-200
+                                         text-sm font-medium shadow-sm
+                                         hover:shadow-md"
+                            >
+                                {reply}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center bg-white/80 backdrop-blur-md rounded-xl 
                 border border-gray-200 shadow-lg justify-between 
                 absolute bottom-0 transition-all duration-300 
