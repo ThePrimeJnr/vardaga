@@ -88,21 +88,25 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             'apply_chat': []
         }));
     }
-    const sendMessage = async () => {
-        if (!input.trim()) return;
+    const sendMessage = async (quickReplyMessage?: string) => {
+        const messageToSend = quickReplyMessage || input;
+        if (!messageToSend.trim()) return;
+
+        // Clear input immediately
+        setInput("");
 
         setMessagesByIntent(prev => ({
             ...prev,
             [currentIntent]: [...prev[currentIntent], {
                 from: 'user',
-                message: input,
+                message: messageToSend,
                 type: 'msg'
             }]
         }));
-        setInput("");
 
         try {
             const endpoint = _getEndpoint();
+            const agent = getAgentName(currentIntent);
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -110,8 +114,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 },
                 body: JSON.stringify({
                     session_id: sessionId || "default",
-                    message: input,
-                    intent: currentIntent
+                    message: messageToSend,
+                    intent: currentIntent,
+                    ...(agent && { agent_name: agent })
                 })
             });
 
@@ -124,7 +129,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 ...prev,
                 [currentIntent]: [...prev[currentIntent], {
                     from: 'bot',
-                    message: answer,
+                    message: answer.message,
+                    quick_replies: answer.quick_replies,
                     type: 'msg'
                 }]
             }));
@@ -277,6 +283,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
                 try {
                     const endpoint = _getEndpoint();
+                    const agent = getAgentName(intentType);
                     const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: {
@@ -285,7 +292,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         body: JSON.stringify({
                             session_id: sessionId || "default",
                             message: "Hi",
-                            intent: intentType
+                            intent: intentType,
+                            ...(agent && { agent_name: agent })
                         })
                     });
 
@@ -298,7 +306,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         ...prev,
                         [intentType]: [...prev[intentType], {
                             from: 'bot',
-                            message: answer,
+                            message: answer.message,
+                            quick_replies: answer.quick_replies,
                             type: 'msg'
                         }]
                     }));
@@ -327,6 +336,17 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 return "What would you like to know about?";
             default:
                 return "Hello! How can I assist you today?";
+        }
+    };
+
+    const getAgentName = (intentType: ChatType['type']): string | undefined => {
+        switch (intentType) {
+            case 'elderly_care_services':
+                return 'service';
+            case 'general_chat':
+                return 'contact';
+            default:
+                return undefined;
         }
     };
 

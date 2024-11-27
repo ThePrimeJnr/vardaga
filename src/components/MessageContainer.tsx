@@ -1,6 +1,8 @@
 import AvatarManIcon from "../icons/AvatarMan";
 import RobotIcon from "../icons/Robot";
 import { Message } from "../types";
+import { useContext } from 'react';
+import { ChatContext } from './ChatContext';
 
 type MessageContainerType = {
     content: string | undefined;
@@ -15,9 +17,18 @@ type MessageContainerType = {
     about?: string
     type: Message['type']
     audioUrl?: string
+    quick_replies?: string[]
 }
 
-function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons, about, name, audioUrl }: MessageContainerType) {
+function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons, about, name, audioUrl, quick_replies }: MessageContainerType) {
+    const { sendMessage } = useContext(ChatContext);
+
+    console.log('MessageContainer props:', { from, type, content, quick_replies });
+
+    const handleQuickReplyClick = (reply: string) => {
+        sendMessage(reply);
+    };
+
     return (
         <div className="w-full mb-4 transform transition-all duration-300 hover:translate-x-1">
             {displayLabel && (
@@ -44,45 +55,28 @@ function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons
                 ${!displayLabel ? "ml-12" : ""}
                 transform transition-gpu hover:scale-[1.01]
             `}>
-                <div className="flex flex-wrap gap-4">
-                    {imageUrl && (
-                        <img
-                            src={imageUrl}
-                            className="rounded-xl max-w-[200px] object-cover shadow-lg 
-                                     transition-transform duration-300 hover:scale-105"
-                            alt={name || "Content"}
-                        />
-                    )}
-                    <div className="flex-1 space-y-2">
-                        {name && <div className="font-bold text-xl">{name}</div>}
-                        {about && <div className={`${from === "bot" ? "text-gray-600" : "text-gray-200"}`}>{about}</div>}
-                        {content && (
-                            <div className={`${from === "bot" ? "text-gray-800" : "text-white"} 
-                                          leading-relaxed whitespace-pre-wrap`}>
-                                {content}
-                            </div>
-                        )}
-                        {audioUrl && (
-                            <audio
-                                controls
-                                src={audioUrl}
-                                className="w-full mt-2 rounded-lg shadow-sm"
-                            />
-                        )}
+                <div>{content}</div>
+                
+                {process.env.NODE_ENV === 'development' && from === "bot" && (
+                    <div className="text-xs text-gray-400 mt-1">
+                        Quick replies: {JSON.stringify(quick_replies)}
                     </div>
-                </div>
-
-                {buttons && (
-                    <div className="flex flex-wrap gap-2 mt-4">
-                        {buttons.map((button, index) => (
+                )}
+                
+                {from === "bot" && quick_replies && quick_replies.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        {quick_replies.map((reply, index) => (
                             <button
                                 key={index}
-                                className="px-6 py-2 rounded-full bg-white text-accent-900 
-                                         font-medium shadow-md transition-all duration-300 
-                                         hover:shadow-lg hover:scale-105 active:scale-95
-                                         border border-accent-100"
+                                onClick={() => handleQuickReplyClick(reply)}
+                                className="px-4 py-2 bg-accent-50 text-accent-900 
+                                         rounded-lg border border-accent-200
+                                         hover:bg-accent-100 hover:border-accent-300
+                                         active:scale-95 transform transition-all duration-200
+                                         text-sm font-medium shadow-sm
+                                         hover:shadow-md"
                             >
-                                {button.name}
+                                {reply}
                             </button>
                         ))}
                     </div>

@@ -81,13 +81,14 @@ function Chat() {
                             <MessageContainer
                                 displayLabel={setDisplayLabel(messages, index)}
                                 buttons={msg.buttons}
-                                imageUrl={msg.imageUrl && msg.imageUrl}
+                                imageUrl={msg.imageUrl}
                                 content={msg.message}
                                 from={msg.from}
                                 type={msg.type}
                                 name={msg.name}
                                 about={msg.about}
                                 audioUrl={msg.audioUrl}
+                                quick_replies={msg.quick_replies}
                             />
                         </div>
                     ))}
