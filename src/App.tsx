@@ -32,8 +32,8 @@ function App() {
             <div className={`
                 fixed right-0 bottom-0 m-8 
                 flex flex-col 
-                h-[75vh] min-w-[400px] 
-                ${expanded ? "w-1/2" : "w-1/3"} 
+                 min-w-[400px] 
+                ${expanded ? "w-1/2 h-[94vh]" : "w-1/3 h-[75vh]"} 
                 bg-white rounded-xl overflow-hidden shadow-xl
                 animate-slide-in
                 transition-all duration-300 ease-in-out
