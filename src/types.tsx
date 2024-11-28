@@ -24,6 +24,13 @@ export interface Message {
         source: string
     }[];
     quick_replies?: string[];
+    service_cards?: {
+        home_name: string;
+        about: string;
+        contact_email: string;
+        url: string;
+        images: string[];
+    }[];
     name?: string;
     about?: string;
     source?: string;

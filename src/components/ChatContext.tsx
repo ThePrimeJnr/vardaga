@@ -112,6 +112,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     from: 'bot',
                     message: answer.message,
                     quick_replies: answer.quick_replies,
+                    service_cards: answer.service_cards,
                     type: 'msg'
                 }]
             }));

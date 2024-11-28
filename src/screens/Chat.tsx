@@ -4,6 +4,7 @@ import Send from "../icons/Send";
 import Square from "../icons/Square";
 import { useContext, useEffect, useRef, useState } from "react";
 import { ChatContext } from "../components/ChatContext";
+import ServiceCard from "../components/ServiceCard";
 
 function Chat() {
     const chatContext = useContext(ChatContext);
@@ -85,6 +86,13 @@ function Chat() {
                                             </button>
                                         ))}
                                     </div>
+                                </div>
+                            )}
+                            {msg.from === 'bot' && msg.service_cards && msg.service_cards.length > 0 && (
+                                <div className=" mb-4 grid grid-cols-1 gap-4">
+                                    {msg.service_cards.map((card, index) => (
+                                        <ServiceCard key={index} {...card} />
+                                    ))}
                                 </div>
                             )}
                         </div>
