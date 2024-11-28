@@ -63,6 +63,8 @@ export interface ChatContextType {
     setVoiceInputActive: React.Dispatch<React.SetStateAction<boolean>>;
     sendIntentMessage: (intentType: ChatType['type']) => void;
     currentIntent: ChatType['type'];
+    isLoading: boolean;
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface MessageContainerType {

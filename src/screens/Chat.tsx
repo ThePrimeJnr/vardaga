@@ -5,6 +5,7 @@ import Square from "../icons/Square";
 import { useContext, useEffect, useRef, useState } from "react";
 import { ChatContext } from "../components/ChatContext";
 import ServiceCard from "../components/ServiceCard";
+import TypingAnimation from "../components/TypingAnimation";
 
 function Chat() {
     const chatContext = useContext(ChatContext);
@@ -17,7 +18,7 @@ function Chat() {
         setDisplayLabel, voiceInputActive, setVoiceInputActive,
         cancelRecording, startChat, clearChatHistory,
         sendVoiceMessage, sendRecording, startRecording, 
-        stopRecording, setShouldSend, clearBlobUrl
+        stopRecording, setShouldSend, clearBlobUrl, isLoading
     } = chatContext;
 
     // timers for voice recording
@@ -97,6 +98,7 @@ function Chat() {
                             )}
                         </div>
                     ))}
+                    {isLoading && <TypingAnimation />}
                 </div>
             </div>
 
