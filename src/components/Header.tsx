@@ -1,6 +1,7 @@
 import RobotIcon from "../icons/Robot";
 import ExpandIcon from "../icons/Expand";
 import CloseIcon from "../icons/Close";
+import ClearIcon from "../icons/Clear";
 import {useLocation, useNavigate} from "react-router-dom";
 import ArrowRight from "../icons/ArrowRight";
 import MinimizeIcon from "../icons/Minimize";
@@ -25,11 +26,15 @@ function Header(
     const location = useLocation();
     const navigate = useNavigate();
     const chatContext = useContext(ChatContext);
-    const { setInput, currentIntent } = chatContext;
+    const { setInput, currentIntent, clearChatHistory } = chatContext;
 
     const handleBack = () => {
         setInput(''); 
         navigate('/', { replace: true }); 
+    };
+
+    const handleClear = () => {
+        clearChatHistory();
     };
 
     return <div id={'header'} className={'min-h-16 h-24 bg-accent-900 flex justify-between items-center px-5'}>
@@ -48,6 +53,15 @@ function Header(
             </div>
         </div>}
         <div className={'flex'}>
+            {location.pathname === '/chat' && (
+                <ClearIcon 
+                    width={26} 
+                    height={26} 
+                    fill={'white'} 
+                    className={'mx-2 hover:cursor-pointer hover:scale-110 transition-transform'} 
+                    onClick={handleClear}
+                />
+            )}
             {expanded ? <MinimizeIcon width={26} height={26} fill={'white'} className={"mx-2 hover:cursor-pointer"} onClick={setExpanded}/> :
                 <ExpandIcon width={26} height={26} fill={'white'} className={'mx-2 hover:cursor-pointer'} onClick={setExpanded}/>
             }

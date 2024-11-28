@@ -79,16 +79,16 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setInput("");
         setIsLoading(true);
 
-        setMessagesByIntent(prev => ({
-            ...prev,
-            [currentIntent]: [...prev[currentIntent], {
-                from: 'user',
-                message: messageToSend,
-                type: 'msg'
-            }]
-        }));
-
         try {
+            setMessagesByIntent(prev => ({
+                ...prev,
+                [currentIntent]: [...prev[currentIntent], {
+                    from: 'user',
+                    message: messageToSend,
+                    type: 'msg'
+                }]
+            }));
+
             const endpoint = _getEndpoint();
             const agent = getAgentName(currentIntent);
             const response = await fetch(endpoint, {
@@ -246,6 +246,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const sendIntentMessage = async (intentType: ChatType['type']) => {
         setCurrentIntent(intentType);
+        setIsLoading(true);
         
         if (messagesByIntent[intentType].length === 0) {
             try {
@@ -267,7 +268,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                setIsLoading(true);
                 const answer = await response.json();
                 
                 // Small delay to show typing animation
@@ -282,8 +282,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         type: 'msg'
                     }]
                 }));
-                setIsLoading(false);
-                
             } catch (error) {
                 console.error('Error sending message:', error);
                 setMessagesByIntent(prev => ({
@@ -294,8 +292,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         type: 'msg'
                     }]
                 }));
+            } finally {
                 setIsLoading(false);
             }
+        } else {
+            setIsLoading(false);
         }
     };
 
