@@ -47,6 +47,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 setAudioBlob(blob);
             },
         });
+    const [isLoading, setIsLoading] = useState(false);
 
         const _getEndpoint = (type?: 'voice' | 'chat') => {
             const baseUrl = process.env.REACT_APP_CHAT_BASEURL;
@@ -76,6 +77,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (!messageToSend?.trim()) return;
 
         setInput("");
+        setIsLoading(true);
 
         setMessagesByIntent(prev => ({
             ...prev,
@@ -112,6 +114,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     from: 'bot',
                     message: answer.message,
                     quick_replies: answer.quick_replies,
+                    service_cards: answer.service_cards,
                     type: 'msg'
                 }]
             }));
@@ -125,6 +128,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     type: 'msg'
                 }]
             }));
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -243,17 +248,6 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCurrentIntent(intentType);
         
         if (messagesByIntent[intentType].length === 0) {
-            // Set initial greeting
-            // setMessagesByIntent(prev => ({
-            //     ...prev,
-            //     [intentType]: [{
-            //         from: 'bot',
-            //         message: getIntentGreeting(intentType),
-            //         type: 'msg'
-            //     }]
-            // }));
-
-            // Send the "start" message only if the intent is opened for the first time
             try {
                 const endpoint = _getEndpoint();
                 const agent = getAgentName(intentType);
@@ -273,7 +267,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
+                setIsLoading(true);
                 const answer = await response.json();
+                
+                // Small delay to show typing animation
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
                 setMessagesByIntent(prev => ({
                     ...prev,
                     [intentType]: [...prev[intentType], {
@@ -283,6 +282,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         type: 'msg'
                     }]
                 }));
+                setIsLoading(false);
+                
             } catch (error) {
                 console.error('Error sending message:', error);
                 setMessagesByIntent(prev => ({
@@ -293,22 +294,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                         type: 'msg'
                     }]
                 }));
+                setIsLoading(false);
             }
         }
     };
-
-    // const getIntentGreeting = (intentType: ChatType['type']) => {
-    //     switch (intentType) {
-    //         case 'elderly_care_services':
-    //             return "How can I help you find elderly care services today?";
-    //         case 'apply_chat':
-    //             return "What service would you like to apply for?";
-    //         case 'general_chat':
-    //             return "What would you like to know about?";
-    //         default:
-    //             return "Hello! How can I assist you today?";
-    //     }
-    // };
 
     const getAgentName = (intentType: ChatType['type']): string | undefined => {
         switch (intentType) {
@@ -345,7 +334,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         stopRecording,
         clearBlobUrl,
         setShouldSend,
-        sendIntentMessage
+        sendIntentMessage,
+        isLoading,
+        setIsLoading,
     };
 
     return (
