@@ -63,7 +63,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Do nothing - we'll let sendIntentMessage handle the start message
     };
 
-    const clearChatHistory = () => {
+    const clearChatHistory = async () => {
         setMessagesByIntent(prev => ({
             ...prev,
             'elderly_care_services': [],
@@ -71,7 +71,58 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             'apply_chat': [],
             'general_questions': []
         }));
-    }
+        
+        setIsLoading(true);
+        
+        try {
+            const endpoint = _getEndpoint();
+            const agent = getAgentName(currentIntent);
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    session_id: sessionId || "default",
+                    message: "start",
+                    agent_name: agent || "general"
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const answer = await response.json();
+            
+            // Small delay to show typing animation
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            setMessagesByIntent(prev => ({
+                ...prev,
+                [currentIntent]: [{
+                    from: 'bot',
+                    message: answer.message,
+                    quick_replies: answer.quick_replies,
+                    type: 'msg',
+                    timestamp: new Date()
+                }]
+            }));
+        } catch (error) {
+            console.error('Error sending message:', error);
+            setMessagesByIntent(prev => ({
+                ...prev,
+                [currentIntent]: [{
+                    from: 'bot',
+                    message: "Sorry, I encountered an error. Please try again.",
+                    type: 'msg',
+                    timestamp: new Date()
+                }]
+            }));
+        } finally {
+            setIsLoading(false);
+        }
+    };
     const sendMessage = async (quickReplyMessage?: string) => {
         const messageToSend = quickReplyMessage || input;
         if (!messageToSend?.trim()) return;
