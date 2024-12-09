@@ -17,9 +17,18 @@ type MessageContainerType = {
     about?: string
     type: Message['type']
     audioUrl?: string
+    timestamp?: Date
 }
 
-function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons, about, name, audioUrl }: MessageContainerType) {
+function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons, about, name, audioUrl, timestamp }: MessageContainerType) {
+    const formatTime = (date?: Date) => {
+        if (!date) return '';
+        return new Intl.DateTimeFormat('sv-SE', {
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    };
+
     return (
         <div className="w-full mb-4 transform transition-all duration-300 hover:translate-x-1">
             {displayLabel && (
@@ -47,6 +56,14 @@ function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons
                 transform transition-gpu hover:scale-[1.01]
             `}>
                 <div>{content}</div>
+                {timestamp && (
+                    <div className={`
+                        text-xs mt-2 text-right
+                        ${from === "bot" ? "text-gray-500" : "text-white/70"}
+                    `}>
+                        {formatTime(timestamp)}
+                    </div>
+                )}
             </div>
         </div>
     );

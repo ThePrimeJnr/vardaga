@@ -35,7 +35,7 @@ export interface Message {
     about?: string;
     source?: string;
     audioUrl?: string;
-
+    timestamp?: Date;
 }
 
 export interface ChatType {
