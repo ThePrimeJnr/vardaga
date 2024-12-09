@@ -303,6 +303,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         if (messagesByIntent[intentType].length === 0) {
             try {
+                // Show typing animation before making the request
+                setMessagesByIntent(prev => ({
+                    ...prev,
+                    [intentType]: []
+                }));
+                
                 const endpoint = _getEndpoint();
                 const agent = getAgentName(intentType);
                 const response = await fetch(endpoint, {
@@ -328,21 +334,23 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 
                 setMessagesByIntent(prev => ({
                     ...prev,
-                    [intentType]: [...prev[intentType], {
+                    [intentType]: [{
                         from: 'bot',
                         message: answer.message,
                         quick_replies: answer.quick_replies,
-                        type: 'msg'
+                        type: 'msg',
+                        timestamp: new Date()
                     }]
                 }));
             } catch (error) {
                 console.error('Error sending message:', error);
                 setMessagesByIntent(prev => ({
                     ...prev,
-                    [intentType]: [...prev[intentType], {
+                    [intentType]: [{
                         from: 'bot',
                         message: "Sorry, I encountered an error. Please try again.",
-                        type: 'msg'
+                        type: 'msg',
+                        timestamp: new Date()
                     }]
                 }));
             } finally {

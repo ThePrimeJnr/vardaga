@@ -54,8 +54,8 @@ function Chat() {
 
     return (
         <div className="w-full h-full relative pb-16 bg-gradient-to-b from-white to-gray-50">
-            <div className="pb-3 overflow-hidden h-full">
-                <div className="px-6 flex flex-col h-full overflow-auto scroll-smooth" ref={scrollContainer}>
+            <div className="h-full overflow-hidden">
+                <div className="px-6 flex flex-col h-full overflow-y-auto scroll-smooth" ref={scrollContainer}>
                     {messages.map((msg, index) => (
                         <div key={index} className="transform transition-all duration-300 ease-in-out">
                             <MessageContainer
@@ -102,6 +102,9 @@ function Chat() {
                             )}
                         </div>
                     ))}
+                    {messages.length === 0 && isLoading && (
+                        <TypingAnimation />
+                    )}
                 </div>
             </div>
 
