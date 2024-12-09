@@ -69,6 +69,9 @@ function Chat() {
                                 about={msg.about}
                                 audioUrl={msg.audioUrl}
                             />
+                            {isLoading && index === messages.length - 1 && (
+                                <TypingAnimation />
+                            )}
                             {msg.from === 'bot' && msg.quick_replies && msg.quick_replies.length > 0 && (
                                 <div className="ml-12 mb-4">
                                     <div className="flex flex-wrap gap-2">
@@ -98,7 +101,6 @@ function Chat() {
                             )}
                         </div>
                     ))}
-                    {isLoading && <TypingAnimation />}
                 </div>
             </div>
 
