@@ -85,7 +85,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 [currentIntent]: [...prev[currentIntent], {
                     from: 'user',
                     message: messageToSend,
-                    type: 'msg'
+                    type: 'msg',
+                    timestamp: new Date()
                 }]
             }));
 
@@ -115,7 +116,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     message: answer.message,
                     quick_replies: answer.quick_replies,
                     service_cards: answer.service_cards,
-                    type: 'msg'
+                    type: 'msg',
+                    timestamp: new Date()
                 }]
             }));
         } catch (error) {

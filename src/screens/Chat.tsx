@@ -68,6 +68,7 @@ function Chat() {
                                 name={msg.name}
                                 about={msg.about}
                                 audioUrl={msg.audioUrl}
+                                timestamp={msg.timestamp}
                             />
                             {isLoading && index === messages.length - 1 && (
                                 <TypingAnimation />
