@@ -33,8 +33,8 @@ function Header(
         navigate('/', { replace: true }); 
     };
 
-    const handleClear = () => {
-        clearChatHistory();
+    const handleClear = async () => {
+        await clearChatHistory();
     };
 
     return <div id={'header'} className={'min-h-16 h-24 bg-accent-900 flex justify-between items-center px-5'}>

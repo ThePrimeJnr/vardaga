@@ -30,9 +30,9 @@ function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons
     };
 
     return (
-        <div className="w-full mb-4 transform transition-all duration-300 hover:translate-x-1">
+        <div className={`w-full mb-4 transform transition-all duration-300 ${from === 'user' ? 'flex flex-col items-end' : 'flex flex-col items-start'}`}>
             {displayLabel && (
-                <div className="flex items-center mb-2 space-x-2 animate-fade-in">
+                <div className={`flex items-center mb-2 space-x-2 animate-fade-in ${from === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                     <div className="p-2 rounded-full bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm">
                         {from === "bot" ?
                             <RobotIcon width={24} height={24} className="text-accent-900 animate-pulse" /> :
@@ -45,14 +45,14 @@ function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons
                 </div>
             )}
             <div className={`
-                rounded-2xl p-4 shadow-md transition-all duration-300 backdrop-blur-sm
+                max-w-[80%] rounded-2xl p-4 shadow-md transition-all duration-300 backdrop-blur-sm
                 ${from === "bot"
                     ? type === 'sr'
                         ? "border-2 border-accent-100 hover:border-accent-900 bg-white/80"
                         : "bg-white/80 hover:bg-white"
                     : "bg-accent-900 text-white hover:bg-accent-800"
                 }
-                ${!displayLabel ? "ml-12" : ""}
+                ${!displayLabel ? (from === 'user' ? 'mr-12' : 'ml-12') : ''}
                 transform transition-gpu hover:scale-[1.01]
             `}>
                 <div>{content}</div>
