@@ -226,6 +226,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             formData.append('session_id', sessionId || 'default');
             formData.append('message', 'Voice message');
             formData.append('audio_file', audioBlob, 'audio.wav');
+            const agent = getAgentName(currentIntent);
+            formData.append('agent_name', agent || 'general');
 
             setMessagesByIntent(prev => ({
                 ...prev,
@@ -245,7 +247,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const transcription = await response.text();
+            const transcription = await response.json();
             
             const chatResponse = await fetch(_getEndpoint('chat'), {
                 method: 'POST',
@@ -254,7 +256,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 },
                 body: JSON.stringify({
                     session_id: sessionId || 'default',
-                    message: transcription
+                    message: transcription.message || transcription,
+                    agent_name: agent || 'general'
                 })
             });
 
@@ -262,13 +265,16 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 throw new Error(`HTTP error! status: ${chatResponse.status}`);
             }
 
-            const answer = await chatResponse.text();
+            const answer = await chatResponse.json();
             setMessagesByIntent(prev => ({
                 ...prev,
                 [currentIntent]: [...prev[currentIntent], {
                     from: 'bot',
-                    message: answer,
-                    type: 'msg'
+                    message: answer.message,
+                    quick_replies: answer.quick_replies || [],
+                    service_cards: answer.service_cards || [],
+                    type: 'msg',
+                    timestamp: new Date()
                 }]
             }));
 
@@ -279,7 +285,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 [currentIntent]: [...prev[currentIntent], {
                     from: 'bot',
                     message: "Sorry, I encountered an error processing your voice message.",
-                    type: 'msg'
+                    type: 'msg',
+                    timestamp: new Date()
                 }]
             }));
         }
