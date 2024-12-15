@@ -3,6 +3,7 @@ import RobotIcon from "../icons/Robot";
 import { Message } from "../types";
 import { useContext } from 'react';
 import { ChatContext } from './ChatContext';
+import AudioProgress from './AudioProgress';
 
 type MessageContainerType = {
     content: string | undefined;
@@ -44,24 +45,33 @@ function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons
                     </div>
                 </div>
             )}
-            <div className={`
-                max-w-[80%] rounded-2xl p-4 shadow-md transition-all duration-300 backdrop-blur-sm
-                ${from === "bot"
-                    ? type === 'sr'
-                        ? "border-2 border-accent-100 hover:border-accent-900 bg-white/80"
-                        : "bg-white/80 hover:bg-white"
-                    : "bg-accent-900 text-white hover:bg-accent-800"
-                }
-                ${!displayLabel ? (from === 'user' ? 'mr-12' : 'ml-12') : ''}
-                transform transition-gpu hover:scale-[1.01]
-            `}>
-                <div>{content}</div>
-                {timestamp && (
+            <div className={`${from === 'user' ? 'bg-transparent' : 'bg-white'} 
+                rounded-xl p-3 max-w-[80%] relative group`}>
+                {type === 'voice' ? (
+                    <div className="min-w-[200px]">
+                        <AudioProgress audioUrl={audioUrl || ''} small={from === 'user'} />
+                    </div>
+                ) : (
                     <div className={`
-                        text-xs mt-2 text-right
-                        ${from === "bot" ? "text-gray-500" : "text-white/70"}
+                       rounded-2xl p-4 shadow-md transition-all duration-300 backdrop-blur-sm
+                        ${from === "bot"
+                            ? type === 'sr'
+                                ? "border-2 border-accent-100 hover:border-accent-900 bg-white/80"
+                                : "bg-white/80 hover:bg-white"
+                            : "bg-accent-900 text-white hover:bg-accent-800"
+                        }
+                        ${!displayLabel ? (from === 'user' ? 'mr-12' : 'ml-12') : ''}
+                        transform transition-gpu hover:scale-[1.01]
                     `}>
-                        {formatTime(timestamp)}
+                        <div>{content}</div>
+                        {timestamp && (
+                            <div className={`
+                                text-xs mt-2 text-right
+                                ${from === "bot" ? "text-gray-500" : "text-white/70"}
+                            `}>
+                                {formatTime(timestamp)}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

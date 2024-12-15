@@ -2,18 +2,19 @@ import {SVGProps} from "react";
 
 function Square(props: SVGProps<SVGSVGElement>) {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" {...props} viewBox="0 0 24 24">
-            <rect
-                width="16"
-                height="16"
-                x="4"
-                y="4"
-                stroke="inherit"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                rx="2"
-            ></rect>
+        <svg 
+            viewBox="0 0 24 24" 
+            fill="currentColor" 
+            {...props}
+        >
+            <rect 
+                x="6" 
+                y="6" 
+                width="12" 
+                height="12" 
+                rx="2" 
+                fill="currentColor"
+            />
         </svg>
     );
 }
