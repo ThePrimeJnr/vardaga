@@ -197,6 +197,7 @@ function Chat() {
                                 about={msg.about}
                                 audioUrl={msg.audioUrl}
                                 timestamp={msg.timestamp}
+                                recorderControls={recorderControls}
                             />
                             {isLoading && index === messages.length - 1 && (
                                 <TypingAnimation />

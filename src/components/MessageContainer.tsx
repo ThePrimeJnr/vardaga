@@ -1,9 +1,11 @@
 import AvatarManIcon from "../icons/AvatarMan";
 import RobotIcon from "../icons/Robot";
 import { Message } from "../types";
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { ChatContext } from './ChatContext';
-import AudioProgress from './AudioProgress';
+import { useVoiceVisualizer, VoiceVisualizer } from 'react-voice-visualizer';
+import PlayIcon from "../icons/Play";
+import PauseIcon from "../icons/Pause";
 
 type MessageContainerType = {
     content: string | undefined;
@@ -22,6 +24,19 @@ type MessageContainerType = {
 }
 
 function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons, about, name, audioUrl, timestamp }: MessageContainerType) {
+    const messageRecorderControls = useVoiceVisualizer();
+
+    useEffect(() => {
+        if (audioUrl && type === 'voice') {
+            fetch(audioUrl)
+                .then(response => response.blob())
+                .then(blob => {
+                    messageRecorderControls.setPreloadedAudioBlob(blob);
+                })
+                .catch(error => console.error('Error loading audio:', error));
+        }
+    }, [audioUrl]);
+
     const formatTime = (date?: Date) => {
         if (!date) return '';
         return new Intl.DateTimeFormat('sv-SE', {
@@ -48,8 +63,41 @@ function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons
             <div className={`${from === 'user' ? 'bg-transparent' : 'bg-white'} 
                 rounded-xl p-3 max-w-[80%] relative group`}>
                 {type === 'voice' ? (
-                    <div className="min-w-[200px]">
-                        <AudioProgress audioUrl={audioUrl || ''} small={from === 'user'} />
+                    <div className={`
+                        min-w-[200px] p-2 flex items-center gap-2
+                        ${from === 'user' ? 'bg-accent-900' : 'bg-white/80'} 
+                        rounded-xl
+                    `}>
+                        <VoiceVisualizer
+                            controls={messageRecorderControls}
+                            height={32}
+                            width="100%"
+                            backgroundColor="transparent"
+                            mainBarColor={from === 'user' ? "#C1C1C1" : "#C1C1C1"}
+                            secondaryBarColor={from === 'user' ? "#ffffff" : "#ffffff"}
+                            isControlPanelShown={false}
+                            isDefaultUIShown={false}
+                            onlyRecording={false}
+                            isProgressIndicatorShown={false}
+                            mainContainerClassName="flex-1"
+                            canvasContainerClassName="flex-1"
+                            speed={4}
+                            barWidth={2}
+                            gap={1}
+                        />
+                        <button 
+                            onClick={() => messageRecorderControls.togglePauseResume()}
+                            className={`
+                                p-2 rounded-full hover:bg-opacity-10 hover:bg-white
+                                ${from === 'user' ? 'text-white' : 'text-accent-900'}
+                            `}
+                        >
+                            {messageRecorderControls.isPausedRecordedAudio ? (
+                                <PlayIcon width={16} height={16} />
+                            ) : (
+                                <PauseIcon width={16} height={16} />
+                            )}
+                        </button>
                     </div>
                 ) : (
                     <div className={`
