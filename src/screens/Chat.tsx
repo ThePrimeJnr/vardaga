@@ -9,6 +9,8 @@ import TypingAnimation from "../components/TypingAnimation";
 import PlayIcon from "../icons/Play";
 import TrashIcon from "../icons/Trash";
 import AudioProgress from "../components/AudioProgress";
+import { useVoiceVisualizer, VoiceVisualizer } from "react-voice-visualizer";
+import PauseIcon from "../icons/Pause";
 
 function Chat() {
     const chatContext = useContext(ChatContext);
@@ -19,6 +21,7 @@ function Chat() {
     const [isDragging, setIsDragging] = useState(false);
     const [startY, setStartY] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement>(null);
     const scrollContainer = useRef<HTMLDivElement | null>(null);
     
@@ -133,6 +136,20 @@ function Chat() {
         }
     }, [messages]);
 
+    // Add voice visualizer controls
+    const recorderControls = useVoiceVisualizer({
+        onStartRecording: () => {
+            setIsRecording(true);
+            setVoiceInputActive(true);
+            startTimer();
+        },
+        onStopRecording: () => {
+            stopTimer();
+            setIsRecording(false);
+            setIsPaused(true);
+        }
+    });
+
     return (
         <div className="w-full h-full relative pb-16 bg-gradient-to-b from-white to-gray-50">
             <div className="h-full overflow-hidden">
@@ -211,12 +228,7 @@ function Chat() {
                         />
                         
                         <button
-                            onMouseDown={handleRecordingStart}
-                            onTouchStart={handleRecordingStart}
-                            onMouseUp={handleRecordingEnd}
-                            onTouchEnd={handleRecordingEnd}
-                            onMouseMove={handleRecordingMove}
-                            onTouchMove={handleRecordingMove}
+                            onClick={recorderControls.startRecording}
                             className="p-3 rounded-full transition-all duration-300 
                                      transform hover:scale-110 active:scale-95
                                      hover:bg-accent-100"
@@ -226,17 +238,45 @@ function Chat() {
                     </>
                 ) : (
                     <div className="w-full flex items-center justify-between p-2">
-                        {!isRecording && audioUrl ? (
+                        {!isRecording && recorderControls.recordedBlob ? (
                             <>
-                                <AudioProgress audioUrl={audioUrl} small />
+                                <div className="flex-1 mx-4">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="text-sm text-accent-900 mb-1 w-1/5">
+                                           {Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, '0')}
+                                        </div>
+                                        <div className="flex-1">
+                                            <VoiceVisualizer
+                                                controls={recorderControls}
+                                                height={40}
+                                                width="100%"
+                                                backgroundColor="transparent"
+                                                mainBarColor="#ef4444"
+                                                secondaryBarColor="#fee2e2"
+                                                isControlPanelShown={false}
+                                                isDefaultUIShown={false}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                                 <div className="flex space-x-2">
                                     <button
                                         onClick={() => {
-                                            if (audioUrl) {
-                                                URL.revokeObjectURL(audioUrl);
-                                            }
+                                            recorderControls.togglePauseResume();
+                                            setIsPlaying(!isPlaying);
+                                        }}
+                                        className="p-2 rounded-full hover:bg-accent-100 text-accent-900"
+                                    >
+                                        {isPlaying ? (
+                                            <PauseIcon width={24} height={24} />
+                                        ) : (
+                                            <PlayIcon width={24} height={24} />
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            recorderControls.clearCanvas();
                                             setVoiceInputActive(false);
-                                            setAudioUrl('');
                                             setIsPaused(false);
                                         }}
                                         className="p-2 rounded-full hover:bg-red-100 text-red-500"
@@ -245,16 +285,11 @@ function Chat() {
                                     </button>
                                     <button
                                         onClick={() => {
-                                            if (audioUrl) {
-                                                fetch(audioUrl)
-                                                    .then(res => res.blob())
-                                                    .then(blob => {
-                                                        sendVoiceMessage(blob);
-                                                        URL.revokeObjectURL(audioUrl);
-                                                        setVoiceInputActive(false);
-                                                        setAudioUrl('');
-                                                        setIsPaused(false);
-                                                    });
+                                            if (recorderControls.recordedBlob) {
+                                                sendVoiceMessage(recorderControls.recordedBlob);
+                                                setVoiceInputActive(false);
+                                                setIsPaused(false);
+                                                recorderControls.clearCanvas();
                                             }
                                         }}
                                         className="p-2 rounded-full bg-accent-900 text-white"
@@ -265,24 +300,27 @@ function Chat() {
                             </>
                         ) : (
                             <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center space-x-4">
-                                    <div className="animate-pulse text-accent-900">
-                                        {isDragging ? (
-                                            <span className="text-red-500">← Slide to cancel</span>
-                                        ) : (
-                                            <>Recording {Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, '0')}</>
-                                        )}
+                                <div className="flex-1 mx-4">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="text-sm text-accent-900 mb-1 w-1/5">
+                                           {Math.floor(timeElapsed / 60)}:{(timeElapsed % 60).toString().padStart(2, '0')}
+                                        </div>
+                                        <div className="flex-1">
+                                        <VoiceVisualizer
+                                            controls={recorderControls}
+                                            height={40}
+                                            width="100%"
+                                            backgroundColor="transparent"
+                                            mainBarColor="#ef4444"
+                                            secondaryBarColor="#fee2e2"
+                                            isControlPanelShown={false}
+                                            isDefaultUIShown={false}
+                                        />
+                                        </div>
                                     </div>
-                                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                                 </div>
                                 <button
-                                    onClick={() => {
-                                        stopTimer();
-                                        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-                                            mediaRecorderRef.current.stop();
-                                        }
-                                        setIsRecording(false);
-                                    }}
+                                    onClick={recorderControls.stopRecording}
                                     className="p-2 rounded-full hover:bg-red-100 text-red-500"
                                 >
                                     <Square width={24} height={24} />
