@@ -147,8 +147,38 @@ function Chat() {
             stopTimer();
             setIsRecording(false);
             setIsPaused(true);
+            setTimeout(() => {
+                if (recorderControls.recordedBlob && recorderControls.recordedBlob instanceof Blob) {
+                    setAudioUrl(URL.createObjectURL(recorderControls.recordedBlob));
+                }
+            }, 100);
         }
     });
+
+    const handleSendVoiceMessage = () => {
+        if (isRecording) {
+            recorderControls.stopRecording();
+            setTimeout(() => {
+                const sendButton = document.querySelector('button[aria-label="Send voice message"]');
+                if (sendButton instanceof HTMLButtonElement) {
+                    sendButton.click();
+                }
+            }, 500);
+        } else if (recorderControls.recordedBlob && recorderControls.recordedBlob instanceof Blob) {
+            sendVoiceMessage(recorderControls.recordedBlob);
+            setVoiceInputActive(false);
+            setIsPaused(false);
+            recorderControls.clearCanvas();
+        }
+    };
+
+    const handleStopRecording = () => {
+        if (isRecording) {
+            recorderControls.stopRecording();
+            setIsRecording(false);
+            setIsPaused(true);
+        }
+    };
 
     return (
         <div className="w-full h-full relative pb-16 bg-gradient-to-b from-white to-gray-50">
@@ -167,6 +197,7 @@ function Chat() {
                                 about={msg.about}
                                 audioUrl={msg.audioUrl}
                                 timestamp={msg.timestamp}
+                                recorderControls={recorderControls}
                             />
                             {isLoading && index === messages.length - 1 && (
                                 <TypingAnimation />
@@ -284,14 +315,8 @@ function Chat() {
                                         <TrashIcon width={24} height={24} />
                                     </button>
                                     <button
-                                        onClick={() => {
-                                            if (recorderControls.recordedBlob) {
-                                                sendVoiceMessage(recorderControls.recordedBlob);
-                                                setVoiceInputActive(false);
-                                                setIsPaused(false);
-                                                recorderControls.clearCanvas();
-                                            }
-                                        }}
+                                        onClick={handleSendVoiceMessage}
+                                        aria-label="Send voice message"
                                         className="p-2 rounded-full bg-accent-900 text-white"
                                     >
                                         <Send height={24} width={24} fill="currentColor" />
@@ -319,12 +344,21 @@ function Chat() {
                                         </div>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={recorderControls.stopRecording}
-                                    className="p-2 rounded-full hover:bg-red-100 text-red-500"
-                                >
-                                    <Square width={24} height={24} />
-                                </button>
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={handleStopRecording}
+                                        className="p-2 rounded-full hover:bg-red-100 text-red-500"
+                                    >
+                                        <Square width={24} height={24} />
+                                    </button>
+                                    <button
+                                        onClick={handleSendVoiceMessage}
+                                        aria-label="Send voice message"
+                                        className="p-2 rounded-full bg-accent-900 text-white"
+                                    >
+                                        <Send height={24} width={24} fill="currentColor" />
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
