@@ -121,11 +121,10 @@ function MessageContainer({ from, type, content, displayLabel, imageUrl, buttons
                         ${!displayLabel ? (from === 'user' ? 'mr-12' : 'ml-12') : ''}
                         transform transition-gpu hover:scale-[1.01]
                     `}>
-                        <div>{content}</div>
+                        <div className="whitespace-pre-wrap">{content}</div>
                         {timestamp && (
                             <div className={`
-                                text-xs mt-2 text-right text-gray-500 
-                               
+                                text-xs mt-2 text-right text-white 
                             `}>
                                 {formatTime(timestamp)}
                             </div>
