@@ -217,58 +217,50 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
-    const sendVoiceMessage = async (audioBlob: Blob) => {
-        const endpoint = _getEndpoint('voice');
-        if (!endpoint) return;
-
+    const sendVoiceMessage = async (blob: Blob) => {
         try {
-            const formData = new FormData();
-            formData.append('session_id', sessionId || 'default');
-            formData.append('message', 'Voice message');
-            formData.append('audio_file', audioBlob, 'audio.wav');
+            setIsLoading(true);
+            const endpoint = _getEndpoint('voice');
+            if (!endpoint) return;
 
+            // Create a URL for the audio blob
+            const audioUrl = URL.createObjectURL(blob);
+
+            // Add user's voice message
             setMessagesByIntent(prev => ({
                 ...prev,
                 [currentIntent]: [...prev[currentIntent], {
                     from: 'user',
+                    message: "Voice message",
                     type: 'voice',
-                    message: 'Voice message sent'
+                    audioUrl: audioUrl,
+                    timestamp: new Date()
                 }]
             }));
+
+            const formData = new FormData();
+            formData.append('session_id', sessionId || 'default');
+            formData.append('message', 'Voice message');
+            formData.append('audio_file', blob, 'audio.wav');
+            const agent = getAgentName(currentIntent);
+            formData.append('agent_name', agent || 'general');
 
             const response = await fetch(endpoint, {
                 method: 'POST',
                 body: formData
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const transcription = await response.text();
+            const answer = await response.json();
             
-            const chatResponse = await fetch(_getEndpoint('chat'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    session_id: sessionId || 'default',
-                    message: transcription
-                })
-            });
-
-            if (!chatResponse.ok) {
-                throw new Error(`HTTP error! status: ${chatResponse.status}`);
-            }
-
-            const answer = await chatResponse.text();
             setMessagesByIntent(prev => ({
                 ...prev,
                 [currentIntent]: [...prev[currentIntent], {
                     from: 'bot',
-                    message: answer,
-                    type: 'msg'
+                    message: answer.message,
+                    quick_replies: answer.quick_replies || [],
+                    service_cards: answer.service_cards || [],
+                    type: 'msg',
+                    timestamp: new Date()
                 }]
             }));
 
@@ -279,9 +271,12 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 [currentIntent]: [...prev[currentIntent], {
                     from: 'bot',
                     message: "Sorry, I encountered an error processing your voice message.",
-                    type: 'msg'
+                    type: 'msg',
+                    timestamp: new Date()
                 }]
             }));
+        } finally {
+            setIsLoading(false);
         }
     };
 
