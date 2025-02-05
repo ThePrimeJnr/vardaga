@@ -1,404 +1,192 @@
-import React, { createContext, ReactNode, useEffect, useState } from 'react';
-import { useReactMediaRecorder } from 'react-media-recorder';
-import { ChatContextType, ChatResponse, ChatType, Message } from "../types";
+import React, { createContext, ReactNode, useEffect, useState } from "react";
+import { useReactMediaRecorder } from "react-media-recorder";
+import api from "../utils/api";
+import { ChatType, Message } from "../types";
 
-const defaultContext: ChatContextType = {
-    cancelRecording: () => {
-    },
-    startChat: async () => {
-    },
-    sendRecording: () => {
-    },
-    voiceInputActive: false,
-    setVoiceInputActive: () => {},
-    messages: [],
-    input: '',
-    setInput: () => {
-    },
-    setIntent: () => {
-    },
-    sendMessage: async () => {
-    },
-    setDisplayLabel: () => true,
-    status: 'idle',
-    clearChatHistory: () => {
-    },
-    sendVoiceMessage: async () => { }
+type ChatContextType = {
+  messages: Message[];
+  input: string;
+  setInput: (input: string) => void;
+  sendMessage: (reply: string) => Promise<void>;
+  startChat: (chatType: ChatType) => Promise<void>;
+  clearChat: () => void;
+  isLoading: boolean;
+
+  // Voice-related functions
+  voiceInputActive: boolean;
+  setVoiceInputActive: (active: boolean) => void;
+  startRecording: () => void;
+  stopRecording: () => void;
+  cancelRecording: () => void;
+  sendRecording: () => void;
+  sendVoiceMessage: (blob: Blob) => Promise<void>;
 };
-export const ChatContext = createContext<ChatContextType>(defaultContext);
 
-export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [voiceInputActive, setVoiceInputActive] = useState(false);
-    const [messagesByIntent, setMessagesByIntent] = useState<Record<ChatType['type'], Message[]>>({
-        elderly_care_services: [],
-        apply_chat: [],
-        general_chat: [],
-        general_questions: []
+// Create context with default values
+export const ChatContext = createContext<ChatContextType>({
+  messages: [],
+  input: "",
+  setInput: () => {},
+  sendMessage: async () => {},
+  startChat: async () => {},
+  clearChat: () => {},
+  isLoading: false,
+  voiceInputActive: false,
+  setVoiceInputActive: () => {},
+  startRecording: () => {},
+  stopRecording: () => {},
+  cancelRecording: () => {},
+  sendRecording: () => {},
+  sendVoiceMessage: async () => {},
+});
+
+export const ChatProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [sessionId, setSessionId] = useState<string>("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [input, setInput] = useState<string>("");
+  const [voiceInputActive, setVoiceInputActive] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob>();
+  const [shouldSend, setShouldSend] = useState(false);
+
+  const { status, startRecording, stopRecording, clearBlobUrl } =
+    useReactMediaRecorder({
+      audio: true,
+      onStop: (_, blob) => {
+        setAudioBlob(blob);
+      },
     });
-    const [currentIntent, setCurrentIntent] = useState<ChatType['type']>('general_chat');
-    const [input, setInput] = useState<string>("");
-    const [audioBlob, setAudioBlob] = useState<Blob>();
-    const [shouldSend, setShouldSend] = useState(false);
-    const [sessionId, setSessionId] = useState<string>("");
-    const { status, startRecording, stopRecording, clearBlobUrl } =
-        useReactMediaRecorder({
-            audio: true,
-            onStop: async (blobUrl, blob) => {
-                setAudioBlob(blob);
-            },
-        });
-    const [isLoading, setIsLoading] = useState(false);
 
-        const _getEndpoint = (type?: 'voice' | 'chat') => {
-            const baseUrl = process.env.REACT_APP_CHAT_BASEURL;
-            switch (type) {
-                case 'voice':
-                    return `${baseUrl}/api/v2/chatbot/voice`;
-                default:
-                    return `${baseUrl}/api/v2/chatbot/chat`;
-            }
-        };
-
-    const startChat = async () => {
-        // Do nothing - we'll let sendIntentMessage handle the start message
-    };
-
-    const clearChatHistory = async () => {
-        setMessagesByIntent(prev => ({
-            ...prev,
-            'elderly_care_services': [],
-            'general_chat': [],
-            'apply_chat': [],
-            'general_questions': []
-        }));
-        
-        setIsLoading(true);
-        
-        try {
-            const endpoint = _getEndpoint();
-            const agent = getAgentName(currentIntent);
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    session_id: sessionId || "default",
-                    message: "start",
-                    agent_name: agent || "general"
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const answer = await response.json();
-            
-            // Small delay to show typing animation
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            setMessagesByIntent(prev => ({
-                ...prev,
-                [currentIntent]: [{
-                    from: 'bot',
-                    message: answer.message,
-                    quick_replies: answer.quick_replies,
-                    type: 'msg',
-                    timestamp: new Date()
-                }]
-            }));
-        } catch (error) {
-            console.error('Error sending message:', error);
-            setMessagesByIntent(prev => ({
-                ...prev,
-                [currentIntent]: [{
-                    from: 'bot',
-                    message: "Sorry, I encountered an error. Please try again.",
-                    type: 'msg',
-                    timestamp: new Date()
-                }]
-            }));
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    const sendMessage = async (quickReplyMessage?: string) => {
-        const messageToSend = quickReplyMessage || input;
-        if (!messageToSend?.trim()) return;
-
-        setInput("");
-        setIsLoading(true);
-
-        try {
-            setMessagesByIntent(prev => ({
-                ...prev,
-                [currentIntent]: [...prev[currentIntent], {
-                    from: 'user',
-                    message: messageToSend,
-                    type: 'msg',
-                    timestamp: new Date()
-                }]
-            }));
-
-            const endpoint = _getEndpoint();
-            const agent = getAgentName(currentIntent);
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    session_id: sessionId || "default",
-                    message: messageToSend,
-                    agent_name: agent || "general"
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const answer = await response.json();
-            setMessagesByIntent(prev => ({
-                ...prev,
-                [currentIntent]: [...prev[currentIntent], {
-                    from: 'bot',
-                    message: answer.message,
-                    quick_replies: answer.quick_replies,
-                    service_cards: answer.service_cards,
-                    type: 'msg',
-                    timestamp: new Date()
-                }]
-            }));
-        } catch (error) {
-            console.error('Error sending message:', error);
-            setMessagesByIntent(prev => ({
-                ...prev,
-                [currentIntent]: [...prev[currentIntent], {
-                    from: 'bot',
-                    message: "Sorry, I encountered an error. Please try again.",
-                    type: 'msg'
-                }]
-            }));
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const setDisplayLabel = (msgs: Message[], index: number): boolean => {
-        if (index === 0) return true;
-        return messagesByIntent[currentIntent][index - 1].from !== msgs[index].from; // If the last message is from the same person, return false. 
-    };
-
-
-    const cancelRecording = () => {
-        setVoiceInputActive(!voiceInputActive)
-        voiceInputActive ? stopRecording() : startRecording()
-        clearBlobUrl()
+  const startChat = async (chatType: ChatType) => {
+    clearChat();
+    setIsLoading(true);
+    try {
+      const response = await api.post("/api/chatbot/start", {
+        agent: chatType,
+      });
+      setSessionId(response.session_id);
+      const welcomeMessage: Message = {
+        message: response.message,
+        type: "text",
+        role: "assistant",
+        timestamp: new Date(),
+        quick_replies: response.quick_replies,
+      };
+      setMessages([welcomeMessage]);
+    } catch (error) {
+      console.error("Error starting chat:", error);
+    } finally {
+      setIsLoading(false);
     }
-    const sendRecording = () => {
-        stopRecording()
-        setShouldSend(true)
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    setSessionId("");
+  };
+
+  const sendMessage = async (reply: string) => {
+    const message = reply.trim();
+    if (!sessionId) return;
+
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const newMessage: Message = {
+        message: message,
+        type: "text",
+        role: "user",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, newMessage]);
+
+      const response = await api.post("/api/chatbot/message", {
+        session_id: sessionId,
+        message: message,
+      });
+
+      const assistantMessage: Message = {
+        message: response.message,
+        type: "text",
+        role: "assistant",
+        timestamp: new Date(),
+        quick_replies: response.quick_replies,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setIsLoading(false);
     }
-    // For sending recorded voice to backend (not working)
-    const sendVoiceForSpeech2Text = async () => {
-        if (audioBlob) {
-            const endpoint = _getEndpoint("speech2text")
-            const formData = new FormData();
-            formData.append('file', audioBlob, 'audio.wav');
-            const r = await fetch(endpoint, {
-                method: "POST",
-                body: formData
-            });
-            const json = await r.json();
-            setInput(json['transcription']);
-            setVoiceInputActive(!voiceInputActive);
-        }
-    };
+  };
 
-    const sendVoiceMessage = async (blob: Blob) => {
-        try {
-            setIsLoading(true);
-            const endpoint = _getEndpoint('voice');
-            if (!endpoint) return;
+  const cancelRecording = () => {
+    setVoiceInputActive(!voiceInputActive);
+    voiceInputActive ? stopRecording() : startRecording();
+    clearBlobUrl();
+  };
 
-            // Create a URL for the audio blob
-            const audioUrl = URL.createObjectURL(blob);
+  const sendRecording = () => {
+    stopRecording();
+    setShouldSend(true);
+  };
 
-            // Add user's voice message
-            setMessagesByIntent(prev => ({
-                ...prev,
-                [currentIntent]: [...prev[currentIntent], {
-                    from: 'user',
-                    message: "Voice message",
-                    type: 'voice',
-                    audioUrl: audioUrl,
-                    timestamp: new Date()
-                }]
-            }));
+  const sendVoiceMessage = async (blob: Blob) => {
+    if (!sessionId) return;
 
-            const formData = new FormData();
-            formData.append('session_id', sessionId || 'default');
-            formData.append('message', 'Voice message');
-            formData.append('audio_file', blob, 'audio.wav');
-            const agent = getAgentName(currentIntent);
-            formData.append('agent_name', agent || 'general');
+    try {
+      setIsLoading(true);
+      const formData = new FormData();
+      formData.append("session_id", sessionId);
+      formData.append("audio_file", blob, "audio.wav");
 
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                body: formData
-            });
+      const response = await api.post("/api/chatbot/voice", formData);
 
-            const answer = await response.json();
-            
-            setMessagesByIntent(prev => ({
-                ...prev,
-                [currentIntent]: [...prev[currentIntent], {
-                    from: 'bot',
-                    message: answer.message,
-                    quick_replies: answer.quick_replies || [],
-                    service_cards: answer.service_cards || [],
-                    type: 'msg',
-                    timestamp: new Date()
-                }]
-            }));
+      const assistantMessage: Message = {
+        message: response.message,
+        type: "text",
+        role: "assistant",
+        timestamp: new Date(),
+      };
 
-        } catch (error) {
-            console.error('Error sending voice message:', error);
-            setMessagesByIntent(prev => ({
-                ...prev,
-                [currentIntent]: [...prev[currentIntent], {
-                    from: 'bot',
-                    message: "Sorry, I encountered an error processing your voice message.",
-                    type: 'msg',
-                    timestamp: new Date()
-                }]
-            }));
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error("Error sending voice message:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    useEffect(() => {
-        const handleVoiceRecording = async () => {
-            if (shouldSend && status === "stopped" && audioBlob) {
-                await sendVoiceMessage(audioBlob);
-                setShouldSend(false);
-                setVoiceInputActive(false);
-            }
-        };
-    
-        handleVoiceRecording();
-    }, [status, shouldSend, audioBlob]);
+  useEffect(() => {
+    if (shouldSend && status === "stopped" && audioBlob) {
+      sendVoiceMessage(audioBlob);
+      setShouldSend(false);
+      setVoiceInputActive(false);
+    }
+  }, [status, shouldSend, audioBlob]);
 
-    const sendIntentMessage = async (intentType: ChatType['type']) => {
-        setCurrentIntent(intentType);
-        setIsLoading(true);
-        
-        if (messagesByIntent[intentType].length === 0) {
-            try {
-                // Show typing animation before making the request
-                setMessagesByIntent(prev => ({
-                    ...prev,
-                    [intentType]: []
-                }));
-                
-                const endpoint = _getEndpoint();
-                const agent = getAgentName(intentType);
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        session_id: sessionId || "default",
-                        message: "start",
-                        agent_name: agent || "general"
-                    })
-                });
+  const contextValue: ChatContextType = {
+    messages,
+    input,
+    setInput,
+    sendMessage,
+    startChat,
+    clearChat,
+    isLoading,
+    voiceInputActive,
+    setVoiceInputActive,
+    startRecording,
+    stopRecording,
+    cancelRecording,
+    sendRecording,
+    sendVoiceMessage,
+  };
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const answer = await response.json();
-                
-                // Small delay to show typing animation
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                setMessagesByIntent(prev => ({
-                    ...prev,
-                    [intentType]: [{
-                        from: 'bot',
-                        message: answer.message,
-                        quick_replies: answer.quick_replies,
-                        type: 'msg',
-                        timestamp: new Date()
-                    }]
-                }));
-            } catch (error) {
-                console.error('Error sending message:', error);
-                setMessagesByIntent(prev => ({
-                    ...prev,
-                    [intentType]: [{
-                        from: 'bot',
-                        message: "Sorry, I encountered an error. Please try again.",
-                        type: 'msg',
-                        timestamp: new Date()
-                    }]
-                }));
-            } finally {
-                setIsLoading(false);
-            }
-        } else {
-            setIsLoading(false);
-        }
-    };
-
-    const getAgentName = (intentType: ChatType['type']): string | undefined => {
-        switch (intentType) {
-            case 'elderly_care_services':
-                return 'service';
-            case 'apply_chat':
-                return 'apply';
-            case 'general_chat':
-                return 'contact';
-            case 'general_questions':
-                return 'general';
-            default:
-                return undefined;
-        }
-    };
-
-    const contextValue = {
-        messages: messagesByIntent[currentIntent],
-        currentIntent,
-        setCurrentIntent,
-        input,
-        setInput,
-        sendMessage,
-        status,
-        setDisplayLabel,
-        voiceInputActive,
-        setVoiceInputActive,
-        cancelRecording,
-        sendRecording,
-        startChat,
-        clearChatHistory,
-        sendVoiceMessage,
-        startRecording,
-        stopRecording,
-        clearBlobUrl,
-        setShouldSend,
-        sendIntentMessage,
-        isLoading,
-        setIsLoading,
-    };
-
-    return (
-        <ChatContext.Provider value={contextValue}>
-            {children}
-        </ChatContext.Provider>
-    );
+  return (
+    <ChatContext.Provider value={contextValue}>{children}</ChatContext.Provider>
+  );
 };
