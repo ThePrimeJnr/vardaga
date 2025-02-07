@@ -51,14 +51,14 @@ function Chat() {
     const lastMessage = messages[messages.length - 1];
     if (
       lastMessage?.role === "assistant" &&
-      lastMessage.message.toUpperCase().includes("EXIT")
+      lastMessage.message.includes("EXIT")
     ) {
       const cleanedMessage = lastMessage.message.replace(/\nEXIT$/i, "");
       lastMessage.message = cleanedMessage;
 
       setTimeout(() => {
         navigate("/");
-      }, 3000);
+      }, 2000);
     }
   }, [messages, navigate]);
 
@@ -119,7 +119,7 @@ function Chat() {
             let message = msg.message;
             if (
               msg.role === "assistant" &&
-              msg.message.toUpperCase().includes("EXIT")
+              msg.message.includes("EXIT")
             ) {
               message = msg.message.replace(/\nEXIT$/i, "");
             }
