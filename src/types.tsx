@@ -1,5 +1,13 @@
 import React from "react";
 
+export type Agent = "service" | "contact" | "apply" | "general";
+
+export const agentMap = {
+  service: "Hitta äldreomsorg",
+  apply: "Att söka äldreomsorg",
+  contact: "Hitta kontaktinformation",
+  general: "Allmäna frågor",
+};
 export type Service = {
   id: string;
   name: string;
@@ -9,13 +17,13 @@ export type Service = {
 };
 
 export type Message = {
-  message: string;
   type: "text" | "voice";
   role: "user" | "assistant";
-  timestamp: Date;
+  message: string;
+  audioUrl?: string;
   quick_replies?: string[];
   service_cards?: Service[];
-  audioUrl?: string;
+  timestamp: Date;
 };
 
 export interface ChatResponse {
@@ -24,42 +32,18 @@ export interface ChatResponse {
   quick_replies?: string[];
 }
 
-export interface OldMessage {
-  message?: string;
-  imageUrl?: string;
-  buttons?: {
-    name: string;
-    source: string;
-  }[];
-  quick_replies?: string[];
-  service_cards?: {
-    home_name: string;
-    about: string;
-    contact_email: string;
-    url: string;
-    images: string[];
-  }[];
-  name?: string;
-  about?: string;
-  source?: string;
-  audioUrl?: string;
-  timestamp?: Date;
-}
-
-export type ChatType = "service" | "contact" | "apply" | "general";
-
 export interface ChatContextType {
   voiceInputActive: boolean;
   messages: Message[];
   input: string;
   setInput: React.Dispatch<React.SetStateAction<string>>;
-  setIntent: React.Dispatch<React.SetStateAction<ChatType>>;
+  setAgent: React.Dispatch<React.SetStateAction<Agent>>;
   sendMessage: (quickReplyMessage?: string) => Promise<void>;
   setDisplayLabel: (msgs: Message[], index: number) => boolean;
   status: string;
   sendRecording: () => void;
   cancelRecording: () => void;
-  startChat: (agent: ChatType) => Promise<void>;
+  startChat: (agent: Agent) => Promise<void>;
   clearChatHistory: () => void;
   sendVoiceMessage: (audioBlob: Blob) => Promise<void>;
   startRecording: () => void;
@@ -67,8 +51,8 @@ export interface ChatContextType {
   clearBlobUrl: () => void;
   setShouldSend: React.Dispatch<React.SetStateAction<boolean>>;
   setVoiceInputActive: React.Dispatch<React.SetStateAction<boolean>>;
-  sendIntentMessage: (intentType: ChatType) => void;
-  currentIntent: ChatType;
+  sendAgentMessage: (agent: Agent) => void;
+  currentAgent: Agent;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }

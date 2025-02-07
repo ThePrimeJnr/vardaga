@@ -1,5 +1,11 @@
-import React, { useState, useEffect, useRef, FormEvent, ChangeEvent } from 'react';
-import ChatMessage from './ChatMessage';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  FormEvent,
+  ChangeEvent,
+} from "react";
+import ChatMessage from "./ChatMessage";
 
 interface Message {
   text: string;
@@ -8,7 +14,7 @@ interface Message {
 
 function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState<string>('');
+  const [inputText, setInputText] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -20,21 +26,21 @@ function ChatInterface() {
   const handleSendMessage = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!inputText.trim()) return; // Prevent sending empty messages
-    
+
     const userMessage: Message = { text: inputText, isBot: false };
     const body = {
       chatHistory: [...messages, userMessage],
       question: inputText,
     };
 
-    const botMessage: Message = { text: '', isBot: true };
+    const botMessage: Message = { text: "", isBot: true };
     setMessages([...messages, userMessage, botMessage]);
-    setInputText('');
+    setInputText("");
 
     // const response = await fetch('http://5.161.229.199:8001/handle-query', {
-    const response = await fetch('http://5.161.229.199:8000/chatbot/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("http://5.161.229.199:8000/chatbot/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
 
@@ -42,7 +48,7 @@ function ChatInterface() {
 
     const decoder = new TextDecoderStream();
     const reader = response.body.pipeThrough(decoder).getReader();
-    let accumulatedAnswer = '';
+    let accumulatedAnswer = "";
 
     while (true) {
       const { value, done } = await reader.read();
@@ -66,11 +72,14 @@ function ChatInterface() {
 
   return (
     <div className="chat-container">
-      <header className="chat-header">Question & Answer with real estate</header>
+      <header className="chat-header">
+        Question & Answer with real estate
+      </header>
       {messages.length === 0 && (
         <div className="chat-message bot-message">
           <p className="initial-message">
-            Hi there! I'm a bot trained to answer questions about Real Estate Dataset in Sweden. Try asking me a question below!
+            Hi there! I'm a bot trained to answer questions about Real Estate
+            Dataset in Sweden. Try asking me a question below!
           </p>
         </div>
       )}

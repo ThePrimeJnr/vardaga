@@ -1,15 +1,15 @@
 /* styles.css */
 
 /* Reset some default styles */
-body, html {
+body,
+html {
   margin: 0;
   padding: 0;
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
   font-size: 12px;
   height: 100%;
   width: 100%;
 }
-
 
 .chat-container {
   display: flex;
@@ -71,7 +71,6 @@ button:disabled {
   cursor: not-allowed;
 }
 
-
 /* Center the main content */
 .App {
   display: flex;
@@ -113,7 +112,7 @@ input[type="text"] {
 .chat-message {
   word-wrap: break-word;
   overflow-wrap: break-word;
-  white-space: normal;  
+  white-space: normal;
   padding: 10px;
   border-radius: 5px;
   margin-bottom: 10px;
@@ -126,8 +125,8 @@ input[type="text"] {
 }
 
 code {
-  font-family: 'Arial', sans-serif;
-  white-space : pre-wrap !important;
+  font-family: "Arial", sans-serif;
+  white-space: pre-wrap !important;
 }
 
 .user-message {

@@ -80,7 +80,6 @@ function Chat() {
   };
 
   const lastMessage = messages[messages.length - 1] as Message | undefined;
-  console.log(lastMessage);
   const showQuickReplies =
     lastMessage?.role === "assistant" &&
     lastMessage.quick_replies &&
@@ -156,93 +155,93 @@ function Chat() {
       >
         {!voiceInputActive ? (
           <>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) =>
-            e.key === "Enter" && !e.shiftKey && sendMessage(input)
-          }
-          className="w-full bg-transparent focus:outline-none px-4 py-2 text-gray-700"
-          placeholder="Skriv här..."
-        />
-        {input ? (
-          <button
-            onClick={() => sendMessage(input)}
-            className="p-3 rounded-full hover:bg-accent-100 transition-all"
-          >
-            <Send height={25} width={25} />
-          </button>
-        ) : (
-          <button
-            onClick={recorderControls.startRecording}
-            className="p-3 rounded-full hover:bg-accent-100 transition-all"
-          >
-            <MicOn height={25} width={25} />
-          </button>
-        )}
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) =>
+                e.key === "Enter" && !e.shiftKey && sendMessage(input)
+              }
+              className="w-full bg-transparent focus:outline-none px-4 py-2 text-gray-700"
+              placeholder="Skriv här..."
+            />
+            {input ? (
+              <button
+                onClick={() => sendMessage(input)}
+                className="p-3 rounded-full hover:bg-accent-100 transition-all"
+              >
+                <Send height={25} width={25} />
+              </button>
+            ) : (
+              <button
+                onClick={recorderControls.startRecording}
+                className="p-3 rounded-full hover:bg-accent-100 transition-all"
+              >
+                <MicOn height={25} width={25} />
+              </button>
+            )}
           </>
         ) : (
           <div className="w-full flex items-center p-2">
-        <div className="flex-1 mx-4">
-          <div className="flex items-center space-x-2">
-            <div className="text-sm text-accent-900 w-1/5">
-          {Math.floor(timeElapsed / 60)}:
-          {(timeElapsed % 60).toString().padStart(2, "0")}
+            <div className="flex-1 mx-4">
+              <div className="flex items-center space-x-2">
+                <div className="text-sm text-accent-900 w-1/5">
+                  {Math.floor(timeElapsed / 60)}:
+                  {(timeElapsed % 60).toString().padStart(2, "0")}
+                </div>
+                <VoiceVisualizer
+                  controls={recorderControls}
+                  height={40}
+                  width="100%"
+                  backgroundColor="transparent"
+                  mainBarColor="#ef4444"
+                  secondaryBarColor="#fee2e2"
+                  isControlPanelShown={false}
+                  isDefaultUIShown={false}
+                />
+              </div>
             </div>
-            <VoiceVisualizer
-          controls={recorderControls}
-          height={40}
-          width="100%"
-          backgroundColor="transparent"
-          mainBarColor="#ef4444"
-          secondaryBarColor="#fee2e2"
-          isControlPanelShown={false}
-          isDefaultUIShown={false}
-            />
-          </div>
-        </div>
-        <div className="flex space-x-2">
-          {!isRecording && recorderControls.recordedBlob ? (
-            <>
-          <button
-            onClick={() => {
-              recorderControls.togglePauseResume();
-              setIsPlaying(!isPlaying);
-            }}
-            className="p-2 rounded-full hover:bg-accent-100"
-          >
-            {isPlaying ? (
-              <PauseIcon width={24} height={24} />
-            ) : (
-              <PlayIcon width={24} height={24} />
-            )}
-          </button>
-          <button
-            onClick={() => {
-              recorderControls.clearCanvas();
-              setVoiceInputActive(false);
-            }}
-            className="p-2 rounded-full hover:bg-red-100 text-red-500"
-          >
-            <TrashIcon width={24} height={24} />
-          </button>
-            </>
-          ) : (
-            <button
-          onClick={handleStopRecording}
-          className="p-2 rounded-full hover:bg-red-100 text-red-500"
-            >
-          <Square width={24} height={24} />
-            </button>
-          )}
-          <button
-            onClick={handleSendVoiceMessage}
-            className="p-2 rounded-full bg-accent-900 text-white"
-          >
-            <Send height={24} width={24} />
-          </button>
-        </div>
+            <div className="flex space-x-2">
+              {!isRecording && recorderControls.recordedBlob ? (
+                <>
+                  <button
+                    onClick={() => {
+                      recorderControls.togglePauseResume();
+                      setIsPlaying(!isPlaying);
+                    }}
+                    className="p-2 rounded-full hover:bg-accent-100"
+                  >
+                    {isPlaying ? (
+                      <PauseIcon width={24} height={24} />
+                    ) : (
+                      <PlayIcon width={24} height={24} />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      recorderControls.clearCanvas();
+                      setVoiceInputActive(false);
+                    }}
+                    className="p-2 rounded-full hover:bg-red-100 text-red-500"
+                  >
+                    <TrashIcon width={24} height={24} />
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleStopRecording}
+                  className="p-2 rounded-full hover:bg-red-100 text-red-500"
+                >
+                  <Square width={24} height={24} />
+                </button>
+              )}
+              <button
+                onClick={handleSendVoiceMessage}
+                className="p-2 rounded-full bg-accent-900 text-white"
+              >
+                <Send height={24} width={24} />
+              </button>
+            </div>
           </div>
         )}
       </div>

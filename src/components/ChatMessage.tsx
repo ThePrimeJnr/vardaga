@@ -1,5 +1,5 @@
-import React from 'react';
-import ReactMarkdown from 'react-markdown';
+import React from "react";
+import ReactMarkdown from "react-markdown";
 
 interface ChatMessageProps {
   message: {
@@ -9,7 +9,6 @@ interface ChatMessageProps {
 }
 
 const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
-  
   // Only parse markdown for bot messages
   const content = message.isBot ? (
     <ReactMarkdown>{message.text}</ReactMarkdown>
@@ -18,7 +17,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   );
 
   return (
-    <div className={`chat-message ${message.isBot ? 'bot-message' : 'user-message'}`}>
+    <div
+      className={`chat-message ${message.isBot ? "bot-message" : "user-message"}`}
+    >
       {content}
     </div>
   );

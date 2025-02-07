@@ -1,35 +1,36 @@
-import './App.css';
+import "./App.css";
 import { useState, useEffect, useContext } from "react";
 import Header from "./components/Header";
-import { Outlet, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import AssistantIcon from "./icons/Assistant";
-import IntentSelection from './screens/IntentSelection';
-import Chat from './screens/Chat';
-import React from 'react';
-import { ChatContext } from './components/ChatContext';
+import AgentSelection from "./screens/AgentSelection";
+import Chat from "./screens/Chat";
+import React from "react";
+import { ChatContext } from "./components/ChatContext";
 
 function App() {
-    const [expanded, setExpanded] = useState(false);
-    const [open, setOpen] = useState(false);
-    const [slideDirection, setSlideDirection] = useState('right');
-    const location = useLocation();
-    const chatContext = useContext(ChatContext);
-    const { setInput } = chatContext;
+  const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [slideDirection, setSlideDirection] = useState("right");
+  const location = useLocation();
+  const chatContext = useContext(ChatContext);
+  const { setInput } = chatContext;
 
-    useEffect(() => {
-        const isNavigatingBack = location.pathname === '/';
-        setSlideDirection(location.pathname === '/chat' ? 'left' : 'right');
-        
-        if (isNavigatingBack) {
-            setTimeout(() => {
-                setInput('');
-            }, 300);
-        }
-    }, [location.pathname, setInput]);
+  useEffect(() => {
+    const isNavigatingBack = location.pathname === "/";
+    setSlideDirection(location.pathname === "/chat" ? "left" : "right");
 
-    if (open) {
-        return (
-            <div className={`
+    if (isNavigatingBack) {
+      setTimeout(() => {
+        setInput("");
+      }, 300);
+    }
+  }, [location.pathname, setInput]);
+
+  if (open) {
+    return (
+      <div
+        className={`
                 fixed right-0 bottom-0 m-8 
                 flex flex-col 
                  min-w-[400px] 
@@ -37,38 +38,51 @@ function App() {
                 bg-white rounded-xl overflow-hidden shadow-xl
                 animate-slide-in
                 transition-all duration-300 ease-in-out
-            `}>
-                <Header
-                    setExpanded={() => setExpanded(!expanded)}
-                    expanded={expanded}
-                    close={() => setOpen(false)}
-                />
-                <div className="relative h-full overflow-hidden">
-                    <div className={`
-                        absolute inset-0 transition-transform duration-500 ease-in-out
-                        ${slideDirection === 'left' ? '-translate-x-full' : 'translate-x-0'}
-                    `}>
-                        <div className="absolute inset-0">
-                            <IntentSelection />
-                        </div>
-                    </div>
-                    <div className={`
-                        absolute inset-0 transition-transform duration-500 ease-in-out
-                        ${slideDirection === 'left' ? 'translate-x-0' : 'translate-x-full'}
-                    `}>
-                        <div className="absolute inset-0">
-                            <Chat />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <button
-            onClick={() => setOpen(true)}
+            `}
+      >
+        <Header
+          setExpanded={() => setExpanded(!expanded)}
+          expanded={expanded}
+          close={() => setOpen(false)}
+        />
+        <div className="relative h-full overflow-hidden">
+          <div
             className={`
+                        absolute inset-0 transition-transform duration-500 ease-in-out
+                        ${
+                          slideDirection === "left"
+                            ? "-translate-x-full"
+                            : "translate-x-0"
+                        }
+                    `}
+          >
+            <div className="absolute inset-0">
+              <AgentSelection />
+            </div>
+          </div>
+          <div
+            className={`
+                        absolute inset-0 transition-transform duration-500 ease-in-out
+                        ${
+                          slideDirection === "left"
+                            ? "translate-x-0"
+                            : "translate-x-full"
+                        }
+                    `}
+          >
+            <div className="absolute inset-0">
+              <Chat />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setOpen(true)}
+      className={`
                 fixed right-0 bottom-0 m-8
                 bg-accent-900 hover:bg-accent-800
                 rounded-full h-14 w-14 
@@ -78,11 +92,10 @@ function App() {
                 shadow-lg hover:shadow-xl
                 animate-bounce-gentle
             `}
-        >
-            <AssistantIcon width={35} height={35} fill={'white'} />
-        </button>
-    );
+    >
+      <AssistantIcon width={35} height={35} fill={"white"} />
+    </button>
+  );
 }
 
 export default App;
-

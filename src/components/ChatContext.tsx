@@ -1,16 +1,17 @@
 import React, { createContext, ReactNode, useEffect, useState } from "react";
 import { useReactMediaRecorder } from "react-media-recorder";
 import api from "../utils/api";
-import { ChatType, Message } from "../types";
+import { Agent, Message } from "../types";
 
 type ChatContextType = {
   messages: Message[];
   input: string;
   setInput: (input: string) => void;
   sendMessage: (reply: string) => Promise<void>;
-  startChat: (chatType: ChatType) => Promise<void>;
+  startChat: (agent: Agent) => Promise<void>;
   clearChat: () => void;
   isLoading: boolean;
+  agent: Agent;
 
   // Voice-related functions
   voiceInputActive: boolean;
@@ -31,6 +32,7 @@ export const ChatContext = createContext<ChatContextType>({
   startChat: async () => {},
   clearChat: () => {},
   isLoading: false,
+  agent: "general",
   voiceInputActive: false,
   setVoiceInputActive: () => {},
   startRecording: () => {},
@@ -50,6 +52,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const [voiceInputActive, setVoiceInputActive] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob>();
   const [shouldSend, setShouldSend] = useState(false);
+  const [agent, setAgent] = useState<Agent>("general");
 
   const { status, startRecording, stopRecording, clearBlobUrl } =
     useReactMediaRecorder({
@@ -59,12 +62,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
       },
     });
 
-  const startChat = async (chatType: ChatType) => {
+  const startChat = async (agent: Agent) => {
     clearChat();
     setIsLoading(true);
+    setAgent(agent);
     try {
       const response = await api.post("/api/chatbot/start", {
-        agent: chatType,
+        agent: agent,
       });
       setSessionId(response.session_id);
       const welcomeMessage: Message = {
@@ -177,6 +181,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
     startChat,
     clearChat,
     isLoading,
+    agent,
     voiceInputActive,
     setVoiceInputActive,
     startRecording,
