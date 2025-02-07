@@ -2,6 +2,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 const dotenv = require("dotenv");
+// @ts-ignore
 const CopyPlugin = require("copy-webpack-plugin");
 
 dotenv.config();
@@ -71,6 +72,7 @@ module.exports = {
         {
           from: "public",
           to: ".",
+          // @ts-ignore
           filter: (resourcePath) => {
             // Don't copy index.html as it's handled by HtmlWebpackPlugin
             return !resourcePath.includes("index.html");
@@ -95,11 +97,13 @@ module.exports = {
         warnings: false,
       },
     },
+    // @ts-ignore
     setupMiddlewares: (middlewares, devServer) => {
       if (!devServer) {
         throw new Error("webpack-dev-server is not defined");
       }
 
+      // @ts-ignore
       devServer.app.use((req, res, next) => {
         try {
           decodeURIComponent(req.path);
