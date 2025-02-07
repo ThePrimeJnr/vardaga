@@ -8,14 +8,16 @@ import MinimizeIcon from "../icons/Minimize";
 import { ChatContext } from "./ChatContext";
 import { useContext } from "react";
 import { agentMap } from "../types";
+import DownloadIcon from "../icons/Download";
 
 type HeaderProps = {
   expanded: boolean;
   setExpanded: () => void;
   close: () => void;
+  downloadChat: () => void;
 };
 
-function Header({ expanded, setExpanded, close }: HeaderProps) {
+function Header({ expanded, setExpanded, close, downloadChat }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const chatContext = useContext(ChatContext);
@@ -66,6 +68,17 @@ function Header({ expanded, setExpanded, close }: HeaderProps) {
               "mx-2 hover:cursor-pointer hover:scale-110 transition-transform"
             }
             onClick={() => startChat(agent)}
+          />
+        )}
+        {location.pathname === "/chat" && (
+          <DownloadIcon
+            width={26}
+            height={26}
+            fill={"white"}
+            className={
+              "mx-2 hover:cursor-pointer hover:scale-110 transition-transform"
+            }
+            onClick={downloadChat}
           />
         )}
         {expanded ? (

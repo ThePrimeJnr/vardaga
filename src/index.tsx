@@ -18,10 +18,6 @@ const router = createMemoryRouter([
     element: <App />,
     children: [
       {
-        path: "/test",
-        element: <div>Hi from test</div>,
-      },
-      {
         path: "",
         element: <AgentSelection />,
       },
@@ -34,12 +30,12 @@ const router = createMemoryRouter([
 ] as RouteObject[]);
 
 const root = ReactDOM.createRoot(
-  document.getElementById("Chatbot") as HTMLElement,
+  document.getElementById("Chatbot") as HTMLElement
 );
 root.render(
   <ChatProvider>
     <RouterProvider router={router} />
-  </ChatProvider>,
+  </ChatProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

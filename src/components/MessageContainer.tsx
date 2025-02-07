@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 import { useVoiceVisualizer, VoiceVisualizer } from "react-voice-visualizer";
-import AvatarManIcon from "../icons/AvatarMan";
-import RobotIcon from "../icons/Robot";
 import PlayIcon from "../icons/Play";
 import PauseIcon from "../icons/Pause";
+import ReactMarkdown from "react-markdown";
 
 type MessageProps = {
   message: string;
@@ -19,7 +18,6 @@ function MessageContainer({
   role,
   type,
   timestamp,
-  displayLabel = true,
   audioUrl,
 }: MessageProps) {
   const messageRecorderControls = useVoiceVisualizer();
@@ -42,35 +40,12 @@ function MessageContainer({
 
   return (
     <div
-      className={`w-full mb-4 transform transition-all duration-300 ${
+      className={`w-full transform transition-all duration-300 ${
         role === "user"
           ? "flex flex-col items-end"
           : "flex flex-col items-start"
       }`}
     >
-      {displayLabel && (
-        <div
-          className={`flex items-center mb-2 space-x-2 animate-fade-in ${
-            role === "user" ? "flex-row-reverse" : "flex-row"
-          }`}
-        >
-          <div className="p-2 rounded-full bg-gradient-to-br from-gray-50 to-gray-100 shadow-sm">
-            {role === "assistant" ? (
-              <RobotIcon
-                width={24}
-                height={24}
-                className="text-accent-900 animate-pulse"
-              />
-            ) : (
-              <AvatarManIcon width={24} height={24} className="text-gray-600" />
-            )}
-          </div>
-          <div className="text-sm font-medium text-gray-700">
-            {role === "assistant" ? "Svardaga" : "You"}
-          </div>
-        </div>
-      )}
-
       <div
         className={`${
           role === "user" ? "bg-transparent" : "bg-white"
@@ -115,23 +90,16 @@ function MessageContainer({
         ) : (
           <div
             className={`
-                        rounded-2xl p-4 shadow-md transition-all duration-300
-                        ${
-                          role === "assistant"
-                            ? "bg-white/80 hover:bg-white"
-                            : "bg-accent-900 text-white hover:bg-accent-800"
-                        }
-                        ${
-                          !displayLabel
-                            ? role === "user"
-                              ? "mr-12"
-                              : "ml-12"
-                            : ""
-                        }
-                        transform transition-gpu hover:scale-[1.01]
-                    `}
+              rounded-2xl p-4 shadow-md 
+              transition-all duration-300 transform hover:scale-[1.01]
+              ${
+                role === "assistant"
+                  ? "bg-gray-100/80 hover:bg-gray-50"
+                  : "bg-accent-900 text-white hover:bg-accent-800"
+              }
+            `}
           >
-            <div className="whitespace-pre-wrap">{message}</div>
+            <ReactMarkdown className="message">{message}</ReactMarkdown>
           </div>
         )}
         <div className="text-xs mt-2 text-right text-gray-500">

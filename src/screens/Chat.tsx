@@ -1,4 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useVoiceVisualizer, VoiceVisualizer } from "react-voice-visualizer";
 import { ChatContext } from "../components/ChatContext";
 import MessageContainer from "../components/MessageContainer";
@@ -13,6 +14,7 @@ import TrashIcon from "../icons/Trash";
 import { Message } from "../types";
 
 function Chat() {
+  const navigate = useNavigate();
   const {
     messages,
     input,
@@ -45,7 +47,20 @@ function Chat() {
     if (scrollContainer.current) {
       scrollContainer.current.scrollTop = scrollContainer.current.scrollHeight;
     }
-  }, [messages]);
+
+    const lastMessage = messages[messages.length - 1];
+    if (
+      lastMessage?.role === "assistant" &&
+      lastMessage.message.toUpperCase().includes("EXIT")
+    ) {
+      const cleanedMessage = lastMessage.message.replace(/\nEXIT$/i, "");
+      lastMessage.message = cleanedMessage;
+
+      setTimeout(() => {
+        navigate("/");
+      }, 3000);
+    }
+  }, [messages, navigate]);
 
   const startTimer = () => {
     setTimeElapsed(0);
@@ -79,6 +94,10 @@ function Chat() {
     }
   };
 
+  const handleSendTextMessage = (text: string) => {
+    sendMessage(text);
+  };
+
   const lastMessage = messages[messages.length - 1] as Message | undefined;
   const showQuickReplies =
     lastMessage?.role === "assistant" &&
@@ -90,39 +109,48 @@ function Chat() {
     lastMessage.service_cards.length > 0;
 
   return (
-    <div className="w-full h-full relative pb-16 bg-gradient-to-b from-white to-gray-50">
+    <div className="chat-container w-full h-full relative pb-16 bg-gradient-to-b from-white to-gray-50">
       <div className="h-full overflow-hidden">
         <div
           className="px-6 flex flex-col h-full overflow-y-auto scroll-smooth"
           ref={scrollContainer}
         >
-          {messages.map((msg, index) => (
-            <MessageContainer
-              key={index}
-              message={msg.message}
-              role={msg.role}
-              type={msg.type}
-              timestamp={msg.timestamp}
-              displayLabel={
-                index === 0 || messages[index - 1]?.role !== msg.role
-              }
-              audioUrl={msg.audioUrl}
-            />
-          ))}
+          {messages.map((msg, index) => {
+            let message = msg.message;
+            if (
+              msg.role === "assistant" &&
+              msg.message.toUpperCase().includes("EXIT")
+            ) {
+              message = msg.message.replace(/\nEXIT$/i, "");
+            }
+            return (
+              <MessageContainer
+                key={index}
+                message={message}
+                role={msg.role}
+                type={msg.type}
+                timestamp={msg.timestamp}
+                displayLabel={
+                  index === 0 || messages[index - 1]?.role !== msg.role
+                }
+                audioUrl={msg.audioUrl}
+              />
+            );
+          })}
 
           {showQuickReplies && (
-            <div className="ml-12 mb-4 animate-fade-in">
+            <div className="quick-replies ml-12 mb-4 animate-fade-in">
               <div className="flex flex-wrap gap-2">
                 {lastMessage.quick_replies?.map((reply, index) => (
                   <button
                     key={index}
-                    onClick={() => sendMessage(reply)}
+                    onClick={() => handleSendTextMessage(reply)}
                     className="px-4 py-2 bg-accent-50 text-accent-900 
-                                                 rounded-lg border border-accent-200
-                                                 hover:bg-accent-100 hover:border-accent-300
-                                                 active:scale-95 transform transition-all duration-200
-                                                 text-sm font-medium shadow-sm
-                                                 hover:shadow-md"
+                             rounded-lg border border-accent-200
+                             hover:bg-accent-100 hover:border-accent-300
+                             active:scale-95 transform transition-all duration-200
+                             text-sm font-medium shadow-sm
+                             hover:shadow-md"
                   >
                     {reply}
                   </button>
@@ -150,7 +178,7 @@ function Chat() {
         </div>
       </div>
       <div
-        className="flex items-center bg-white/80 backdrop-blur-md rounded-xl border border-gray-200 shadow-lg 
+        className="chat-input flex items-center bg-white/80 backdrop-blur-md rounded-xl border border-gray-200 shadow-lg 
               justify-between absolute bottom-0 mx-8 mb-4 left-0 right-0"
       >
         {!voiceInputActive ? (
@@ -160,14 +188,14 @@ function Chat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) =>
-                e.key === "Enter" && !e.shiftKey && sendMessage(input)
+                e.key === "Enter" && !e.shiftKey && handleSendTextMessage(input)
               }
               className="w-full bg-transparent focus:outline-none px-4 py-2 text-gray-700"
               placeholder="Skriv här..."
             />
             {input ? (
               <button
-                onClick={() => sendMessage(input)}
+                onClick={() => handleSendTextMessage(input)}
                 className="p-3 rounded-full hover:bg-accent-100 transition-all"
               >
                 <Send height={25} width={25} />
