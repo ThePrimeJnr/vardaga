@@ -68,12 +68,12 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
-        { 
+        {
           from: "public",
           to: ".",
           filter: (resourcePath) => {
             // Don't copy index.html as it's handled by HtmlWebpackPlugin
-            return !resourcePath.includes('index.html');
+            return !resourcePath.includes("index.html");
           },
         },
       ],
