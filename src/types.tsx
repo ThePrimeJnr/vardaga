@@ -22,14 +22,21 @@ export type Message = {
   message: string;
   audioUrl?: string;
   quick_replies?: string[];
+  references?: Reference[];
   service_cards?: Service[];
   timestamp: Date;
 };
-
+export interface Reference {
+  url: string;
+  title: string;
+  description: string;
+  image: string;
+}
 export interface ChatResponse {
   session_id: string;
   message: string;
   quick_replies?: string[];
+  references?: Reference[];
 }
 
 export interface ChatContextType {

@@ -3,9 +3,12 @@ import { useVoiceVisualizer, VoiceVisualizer } from "react-voice-visualizer";
 import PlayIcon from "../icons/Play";
 import PauseIcon from "../icons/Pause";
 import ReactMarkdown from "react-markdown";
+import References from "./References";
+import { Reference } from "../types";
 
 type MessageProps = {
   message: string;
+  references?: Reference[];
   role: "user" | "assistant";
   type: "text" | "voice";
   timestamp: Date;
@@ -15,6 +18,7 @@ type MessageProps = {
 
 function MessageContainer({
   message,
+  references,
   role,
   type,
   timestamp,
@@ -46,11 +50,7 @@ function MessageContainer({
           : "flex flex-col items-start"
       }`}
     >
-      <div
-        className={`${
-          role === "user" ? "bg-transparent" : "bg-white"
-        } rounded-xl p-3 max-w-[80%] relative`}
-      >
+      <div className={"bg-transparent rounded-xl max-w-[80%] relative"}>
         {type === "voice" ? (
           <div className="flex flex-col">
             <div
@@ -100,9 +100,10 @@ function MessageContainer({
             `}
           >
             <ReactMarkdown className="message">{message}</ReactMarkdown>
+            <References references={references ?? []} />
           </div>
         )}
-        <div className="text-xs mt-2 text-right text-gray-500">
+        <div className="text-xs mt-1 mr-2 text-right text-gray-500">
           {formatTime(timestamp)}
         </div>
       </div>

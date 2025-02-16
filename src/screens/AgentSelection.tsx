@@ -34,7 +34,7 @@ function AgentSelection() {
   ];
 
   return (
-    <div className="bg-gradient-to-b from-[#FFE0DE] to-[#FFFFFF] h-full w-full px-8 pt-4 relative pb-16">
+    <div className="bg-gradient-to-b from-[#FFE0DE] to-[#FFFFFF] h-full w-full px-4 pt-4 relative pb-16">
       <div className="mb-6 font-bold text-2xl animate-fade-in">
         <div>Hej! 👋</div>
         <div>Hur kan jag hjälpa dig?</div>

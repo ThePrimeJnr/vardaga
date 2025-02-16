@@ -25,7 +25,7 @@ function AgentHeaders({
   return (
     <div
       className={`
-            bg-white rounded-xl py-2 px-6 
+            bg-white rounded-xl p-2 
             hover:cursor-pointer 
             border-2 border-gray-100
             hover:border-accent-900 

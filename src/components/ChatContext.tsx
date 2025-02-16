@@ -77,6 +77,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         role: "assistant",
         timestamp: new Date(),
         quick_replies: response.quick_replies,
+        references: response.references
       };
       setMessages([welcomeMessage]);
     } catch (error) {
@@ -118,6 +119,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
         role: "assistant",
         timestamp: new Date(),
         quick_replies: response.quick_replies,
+        references: response.references
       };
 
       setMessages((prev) => [...prev, assistantMessage]);

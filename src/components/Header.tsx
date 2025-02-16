@@ -32,7 +32,7 @@ function Header({ expanded, setExpanded, close, downloadChat }: HeaderProps) {
     <div
       id={"header"}
       className={
-        "min-h-16 h-24 bg-accent-900 flex justify-between items-center px-5"
+        "bg-accent-900 flex justify-between items-center px-4 py-6"
       }
     >
       {location.pathname === "/" && (
